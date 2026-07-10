@@ -1,0 +1,1246 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>导航表征统一框架宏观说明</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --panel: #f7f7f7;
+      --text: #111111;
+      --muted: #555555;
+      --line: #d9d9d9;
+      --code: #f1f3f5;
+      --accent: #1f5fbf;
+      --accent-soft: #eaf1ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif;
+      line-height: 1.68;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      border-right: 1px solid var(--line);
+      background: var(--panel);
+      padding: 24px 18px;
+    }
+
+    .sidebar h1 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      line-height: 1.25;
+    }
+
+    .sidebar .subtitle {
+      margin: 0 0 20px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .nav-group {
+      margin: 18px 0;
+    }
+
+    .nav-title {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .nav-list {
+      display: grid;
+      gap: 4px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .nav-list a {
+      display: block;
+      border-radius: 6px;
+      padding: 6px 8px;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .nav-list a:hover {
+      background: var(--accent-soft);
+      text-decoration: none;
+    }
+
+    main {
+      max-width: 1120px;
+      padding: 36px 44px 80px;
+    }
+
+    .hero {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 24px;
+      margin-bottom: 26px;
+    }
+
+    .hero h2 {
+      margin: 0 0 12px;
+      font-size: 34px;
+      line-height: 1.2;
+    }
+
+    .hero p {
+      max-width: 900px;
+      margin: 8px 0;
+      color: var(--muted);
+    }
+
+    section {
+      scroll-margin-top: 24px;
+      border-bottom: 1px solid var(--line);
+      padding: 28px 0;
+    }
+
+    section:last-child {
+      border-bottom: 0;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 26px;
+      line-height: 1.25;
+    }
+
+    h3 {
+      margin: 20px 0 8px;
+      font-size: 17px;
+    }
+
+    p {
+      margin: 8px 0;
+    }
+
+    ul {
+      margin: 8px 0 0 22px;
+      padding: 0;
+    }
+
+    li {
+      margin: 4px 0;
+    }
+
+    code {
+      border-radius: 4px;
+      background: var(--code);
+      padding: 1px 5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 4px;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      padding: 8px 10px;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: var(--panel);
+      font-weight: 700;
+    }
+
+    .symbol-table {
+      margin: 8px 0 18px;
+    }
+
+    .symbol-table th:first-child,
+    .symbol-table td:first-child {
+      width: 28%;
+      white-space: nowrap;
+    }
+
+    .box {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 12px 14px;
+      margin: 14px 0;
+    }
+
+    .note {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--accent-soft);
+      padding: 10px 12px;
+      color: #1f2937;
+    }
+
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .stage {
+      min-height: 100px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 12px 10px;
+    }
+
+    .stage strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .stage span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .formula {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 16px 14px;
+      margin: 12px 0;
+      overflow-x: auto;
+      font-family: "Times New Roman", "Noto Serif CJK SC", serif;
+      font-size: 18px;
+      line-height: 1.8;
+    }
+
+    mjx-container {
+      overflow-x: auto;
+      overflow-y: visible;
+      max-width: 100%;
+    }
+
+    mjx-container[jax="SVG"] > svg {
+      overflow: visible;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        display: block;
+      }
+
+      .sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      main {
+        padding: 28px 20px 60px;
+      }
+
+      .pipeline {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .hero h2 {
+        font-size: 28px;
+      }
+
+      .pipeline {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']],
+        processEscapes: true
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <h1>统一框架</h1>
+      <p class="subtitle">导航表征生成模型的宏观架构</p>
+
+      <nav aria-label="目录">
+        <div class="nav-group">
+          <p class="nav-title">总览</p>
+          <ul class="nav-list">
+            <li><a href="#overview">框架概览</a></li>
+            <li><a href="#pipeline">1. 总体链条</a></li>
+            <li><a href="#task">2. 任务定义</a></li>
+            <li><a href="#representation">3. 静态表征</a></li>
+          </ul>
+        </div>
+
+        <div class="nav-group">
+          <p class="nav-title">统一接口</p>
+          <ul class="nav-list">
+            <li><a href="#transition">4. 表征到转移核</a></li>
+            <li><a href="#distance">5. 从 Transition 到认知几何</a></li>
+            <li><a href="#planning">6. A* 搜索与路径展开</a></li>
+          </ul>
+        </div>
+
+        <div class="nav-group">
+          <p class="nav-title">结论</p>
+          <ul class="nav-list">
+            <li><a href="#conclusion">7. 宏观结论</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <main>
+      <div class="hero" id="overview">
+        <h2>导航表征统一框架宏观说明</h2>
+        <p>
+          本文档只描述宏观架构。chunk、landmark、A*、MDS 等细节后续再分别补充。
+        </p>
+        <p>
+          当前框架的核心思想是：不同导航表征先诱导同一种数学对象，也就是状态之间的概率转移核；
+          随后统一转换为 directed cost、directed distance、二维认知地图和共享 A* 规划过程。
+        </p>
+      </div>
+
+      <section id="pipeline">
+        <h2>1. 总体链条</h2>
+        <p>整个框架可以概括为以下 pipeline：</p>
+        <div class="formula">
+          \[
+          (\mathcal K_0,\mathcal R_M)
+          \;\longrightarrow\;
+          P_M(v'\mid v)
+          \;\longrightarrow\;
+          c_M(u,v)
+          \;\longrightarrow\;
+          d_M^{\rightarrow}(u,v)
+          \;\longrightarrow\;
+          D_M(u,v)
+          \;\longrightarrow\;
+          \psi_M(v)
+          \;\longrightarrow\;
+          A^\ast
+          \]
+        </div>
+
+        <div class="pipeline" aria-label="宏观流程">
+          <div class="stage">
+            <strong>1. 任务与表征</strong>
+            <span>\(\mathcal K_0\) 给出环境，\(\mathcal R_M\) 给出任务相关表征。</span>
+          </div>
+          <div class="stage">
+            <strong>2. 转移核</strong>
+            <span>\(P_M(v'\mid v)\)：由表征诱导的状态转移概率。</span>
+          </div>
+          <div class="stage">
+            <strong>3. 有向代价</strong>
+            <span>\(c_M(u,v)\)：把转移概率转换为 additive cost。</span>
+          </div>
+          <div class="stage">
+            <strong>4. 有向距离</strong>
+            <span>\(d_M^{\rightarrow}(u,v)\)：在有向代价图上的最短距离。</span>
+          </div>
+          <div class="stage">
+            <strong>5. 二维嵌入</strong>
+            <span>\(\psi_M(v)\)：用于认知地图可视化和 A* heuristic。</span>
+          </div>
+          <div class="stage">
+            <strong>6. 共享规划</strong>
+            <span>\(A^\ast\)：在 directed cost graph 上进行搜索。</span>
+          </div>
+        </div>
+
+        <div class="note">
+          统一点不在于所有表征拥有相同的心理内容，而在于它们都必须先生成同一种规划接口：
+          一个 row-stochastic transition kernel。
+        </div>
+      </section>
+
+      <section id="task">
+        <h2>2. 任务定义</h2>
+        <p>任务先于表征存在。所有表征和行为生成过程都定义在同一个 primitive navigation task 上：</p>
+        <div class="formula">
+          \[
+          \mathcal K_0
+          =
+          (\mathcal S,\mathcal A,\mathcal A(\cdot),T,\kappa)
+          \]
+        </div>
+        <table class="symbol-table">
+          <thead>
+            <tr>
+              <th>符号</th>
+              <th>含义</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>\(\mathcal K_0\)</td>
+              <td>primitive task graph，即真实任务环境。</td>
+            </tr>
+            <tr>
+              <td>\(\mathcal S\)</td>
+              <td>有限状态集合。</td>
+            </tr>
+            <tr>
+              <td>\(\mathcal A\)</td>
+              <td>primitive action vocabulary。</td>
+            </tr>
+            <tr>
+              <td>\(\mathcal A(s)\subseteq\mathcal A\)</td>
+              <td>状态 \(s\) 下合法的 primitive action 集合。</td>
+            </tr>
+            <tr>
+              <td>\(T(s,a)\)</td>
+              <td>确定性环境转移函数；仅对 \(a\in\mathcal A(s)\) 定义。</td>
+            </tr>
+            <tr>
+              <td>\(\kappa(s,a)>0\)</td>
+              <td>执行 primitive action \(a\) 的基础代价。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>一条合法 primitive path 写成：</p>
+        <div class="formula">
+          \[
+          \rho=(s_0,a_0,s_1,\ldots,a_{L-1},s_L),
+          \qquad
+          a_t\in\mathcal A(s_t),
+          \qquad
+          s_{t+1}=T(s_t,a_t)
+          \]
+        </div>
+        <p>其基础代价和 primitive shortest-path distance 分别为：</p>
+        <div class="formula">
+          \[
+          C_0(\rho)=\sum_{t=0}^{L-1}\kappa(s_t,a_t),
+          \qquad
+          d^\ast(s,t)=\min_{\rho:s\leadsto t} C_0(\rho)
+          \]
+        </div>
+        <table class="symbol-table">
+          <thead>
+            <tr>
+              <th>符号</th>
+              <th>含义</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>\(\rho\)</td>
+              <td>一条由状态和 primitive action 交替组成的合法路径。</td>
+            </tr>
+            <tr>
+              <td>\(C_0(\rho)\)</td>
+              <td>路径 \(\rho\) 在原始任务图上的总代价。</td>
+            </tr>
+            <tr>
+              <td>\(d^\ast(s,t)\)</td>
+              <td>从状态 \(s\) 到状态 \(t\) 的 primitive 最短距离；若 \(\kappa=1\)，就是最短步数。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="note">
+          九宫格任务是该定义的一个具体实例：\(\mathcal S=\{1,\ldots,9\}\)，
+          \(\mathcal A=\{\mathrm{up},\mathrm{down},\mathrm{left},\mathrm{right}\}\)，
+          越界动作不属于 \(\mathcal A(s)\)，通常令 \(\kappa(s,a)=1\)。
+        </div>
+      </section>
+
+      <section id="representation">
+        <h2>3. 静态表征</h2>
+        <p>
+          静态表征是定义在任务上的任务相关结构。本文档默认 \(w\) 表示归一化权重分布，
+          数值上可直接作为选择概率使用；
+          不额外引入未归一化 weight 或 softmax score。
+        </p>
+
+        <h3>3.1 表征依赖的任务图</h3>
+        <p>
+          三类表征都定义在第 2 节的同一个任务图 \(\mathcal K_0\) 上。
+          表征只改变行为生成器如何组织和使用这个任务图，不改变真实环境转移 \(T\)。
+        </p>
+
+        <h3>3.2 统一形式</h3>
+        <p>每个 family 的静态表征写成 inventory 加归一化权重参数：</p>
+        <div class="formula">
+          \[
+          \mathcal R_M=(\mathcal I_M,\Theta_M),
+          \qquad
+          M\in\{\mathrm P,\mathrm C,\mathrm L\}
+          \]
+        </div>
+        <table class="symbol-table">
+          <thead>
+            <tr>
+              <th>符号</th>
+              <th>含义</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>\(\mathcal R_M\)</td>
+              <td>family \(M\) 的静态表征。</td>
+            </tr>
+            <tr>
+              <td>\(M\)</td>
+              <td>表征 family：primitive \(\mathrm P\)、chunk \(\mathrm C\)、landmark \(\mathrm L\)。</td>
+            </tr>
+            <tr>
+              <td>\(\mathcal I_M\)</td>
+              <td>该 family 存储的表征元素集合，例如动作、chunk 或 landmark。</td>
+            </tr>
+            <tr>
+              <td>\(\Theta_M\)</td>
+              <td>该 family 存储的归一化权重参数；这些参数随后诱导 \(P_M(v'\mid v)\)。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>3.3 Primitive 表征</h3>
+        <div class="formula">
+          \[
+          \mathcal R_{\mathrm P}
+          =
+          (\mathcal A,w_{\mathrm P}),
+          \qquad
+          \sum_{a\in\mathcal A(s)}w_{\mathrm P}(a\mid s)=1
+          \]
+        </div>
+        <table class="symbol-table">
+          <thead>
+            <tr>
+              <th>符号</th>
+              <th>含义</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>\(\mathcal R_{\mathrm P}\)</td>
+              <td>primitive family 的静态表征。</td>
+            </tr>
+            <tr>
+              <td>\(\mathcal A\)</td>
+              <td>primitive action inventory。</td>
+            </tr>
+            <tr>
+              <td>\(w_{\mathrm P}(a\mid s)\)</td>
+              <td>在状态 \(s\) 下选择合法 primitive action \(a\) 的归一化权重。</td>
+            </tr>
+            <tr>
+              <td>\(\mathcal A(s)\)</td>
+              <td>当前状态下可执行的 primitive action；不可执行动作不参与归一化。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>3.4 Action-chunk 表征</h3>
+        <div class="formula">
+          \[
+          \mathcal R_{\mathrm C}
+          =
+          (\mathcal G,w_{\mathcal G}),
+          \qquad
+          \mathcal T_{\mathcal G}(s)=\mathcal A(s)\cup\mathcal G(s),
+          \qquad
+          \sum_{g\in\mathcal T_{\mathcal G}(s)}w_{\mathcal G}(g\mid s)=1
+          \]
+        </div>
+        <table class="symbol-table">
+          <thead>
+            <tr>
+              <th>符号</th>
+              <th>含义</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>\(\mathcal R_{\mathrm C}\)</td>
+              <td>action-chunk family 的静态表征。</td>
+            </tr>
+            <tr>
+              <td>\(\mathcal G\)</td>
+              <td>action grammar，即表征实例保存的 chunk inventory。</td>
+            </tr>
+            <tr>
+              <td>\(g=(a_1,\ldots,a_L)\)</td>
+              <td>一个 chunk token；它是长度为 \(L\) 的 primitive action 序列。</td>
+            </tr>
+            <tr>
+              <td>\(\mathcal G(s)\)</td>
+              <td>状态 \(s\) 下可完整合法执行的 chunk 集合。</td>
+            </tr>
+            <tr>
+              <td>\(\mathcal T_{\mathcal G}(s)\)</td>
+              <td>状态 \(s\) 下可选 token 集合，包含合法 primitive action 和合法 chunk。</td>
+            </tr>
+            <tr>
+              <td>\(w_{\mathcal G}(g\mid s)\)</td>
+              <td>在状态 \(s\) 下选择 token \(g\) 的归一化权重。</td>
+            </tr>
+            <tr>
+              <td>\(f(s,g)\)</td>
+              <td>从状态 \(s\) 完整执行 token \(g\) 后到达的实际终点。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>3.5 Landmark 表征</h3>
+        <div class="formula">
+          \[
+          \mathcal R_{\mathrm L}
+          =
+          (\mathcal L,
+          p_{\mathcal L\mathcal L},
+          p_{\mathcal L\mathcal U},
+          p_{\mathcal U\mathcal L}),
+          \qquad
+          \mathcal U=\mathcal S\setminus\mathcal L,
+          \qquad
+          |\mathcal L|\ge 2
+          \]
+        </div>
+        <table class="symbol-table">
+          <thead>
+            <tr>
+              <th>符号</th>
+              <th>含义</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>\(\mathcal R_{\mathrm L}\)</td>
+              <td>landmark family 的静态表征。</td>
+            </tr>
+            <tr>
+              <td>\(\mathcal L\)</td>
+              <td>landmark state set；本文当前把 landmark 视为具体状态。</td>
+            </tr>
+            <tr>
+              <td>\(\mathcal U\)</td>
+              <td>non-landmark state set。</td>
+            </tr>
+            <tr>
+              <td>\(p_{\mathcal L\mathcal L}(\ell'\mid\ell)\)</td>
+              <td>landmark 到 landmark 的条件转移概率。</td>
+            </tr>
+            <tr>
+              <td>\(p_{\mathcal L\mathcal U}(u\mid\ell)\)</td>
+              <td>landmark 到 non-landmark 的条件转移概率。</td>
+            </tr>
+            <tr>
+              <td>\(p_{\mathcal U\mathcal L}(\ell\mid u)\)</td>
+              <td>non-landmark 到 landmark 的条件转移概率。</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>landmark 的每一行概率联合归一化：</p>
+        <div class="formula">
+          \[
+          \sum_{\ell'\in\mathcal L}p_{\mathcal L\mathcal L}(\ell'\mid\ell)
+          +
+          \sum_{u\in\mathcal U}p_{\mathcal L\mathcal U}(u\mid\ell)
+          =
+          1,
+          \qquad
+          \sum_{\ell\in\mathcal L}p_{\mathcal U\mathcal L}(\ell\mid u)=1
+          \]
+        </div>
+        <div class="note">
+          静态表征不包含当前状态、当前 goal、A* 搜索过程、实际执行轨迹、RT 或 parse/segment 结果。
+          这些属于后续规划、执行或推断阶段。
+        </div>
+      </section>
+
+      <section id="transition">
+        <h2>4. 从表征到 Transition Kernel</h2>
+        <p>
+          Transition kernel 描述从当前状态到下一个认知状态的概率。
+          Primitive 和 action-chunk 通过 token 执行终点汇总得到 kernel；
+          landmark 通过已存储的 CPD blocks 查表拼接得到 kernel。
+        </p>
+
+        <div class="formula">
+          \[
+          P_M(s'\mid s),
+          \qquad
+          \sum_{s'\in\mathcal S} P_M(s'\mid s)=1
+          \]
+        </div>
+        <table class="symbol-table">
+          <thead>
+            <tr>
+              <th>符号</th>
+              <th>含义</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>\(P_M(s'\mid s)\)</td>
+              <td>family \(M\) 诱导的状态转移概率。</td>
+            </tr>
+            <tr>
+              <td>\(s,s'\)</td>
+              <td>任务状态；\(s\) 是起点，\(s'\) 是 token 执行后的终点。</td>
+            </tr>
+            <tr>
+              <td>\(\mathcal S\)</td>
+              <td>状态集合；每一行 \(P_M(\cdot\mid s)\) 都在 \(\mathcal S\) 上归一化。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>4.1 统一 token 汇总公式</h3>
+        <div class="formula">
+          \[
+          P_M(s'\mid s)
+          =
+          \sum_{\substack{\tau\in\mathcal T_M(s):\\ f(s,\tau)=s'}}
+          w_M(\tau\mid s),
+          \qquad
+          M\in\{\mathrm P,\mathrm C\}
+          \]
+        </div>
+        <table class="symbol-table">
+          <thead>
+            <tr>
+              <th>符号</th>
+              <th>含义</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>\(\tau\)</td>
+              <td>当前 family 可选择的 token；primitive 中是单个动作，chunk 中可以是动作或动作序列。</td>
+            </tr>
+            <tr>
+              <td>\(\mathcal T_M(s)\)</td>
+              <td>family \(M\) 在状态 \(s\) 下可执行的 token 集合。</td>
+            </tr>
+            <tr>
+              <td>\(f(s,\tau)\)</td>
+              <td>从状态 \(s\) 完整执行 token \(\tau\) 后到达的终点。</td>
+            </tr>
+            <tr>
+              <td>\(w_M(\tau\mid s)\)</td>
+              <td>状态 \(s\) 下选择 token \(\tau\) 的归一化权重。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>4.2 Primitive kernel</h3>
+        <p>Primitive family 的 token 就是当前状态下合法的 primitive action：</p>
+        <div class="formula">
+          \[
+          \mathcal T_{\mathrm P}(s)=\mathcal A(s),
+          \qquad
+          f(s,a)=T(s,a)
+          \]
+        </div>
+        <p>因此 primitive transition kernel 为：</p>
+        <div class="formula">
+          \[
+          P_{\mathrm P}(s'\mid s)
+          =
+          \sum_{\substack{a\in\mathcal A(s):\\ T(s,a)=s'}}
+          w_{\mathrm P}(a\mid s)
+          \]
+        </div>
+        <table class="symbol-table">
+          <thead>
+            <tr>
+              <th>符号</th>
+              <th>含义</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>\(\mathcal T_{\mathrm P}(s)\)</td>
+              <td>primitive family 在状态 \(s\) 下可选的 token 集合。</td>
+            </tr>
+            <tr>
+              <td>\(a\)</td>
+              <td>一个合法 primitive action。</td>
+            </tr>
+            <tr>
+              <td>\(T(s,a)\)</td>
+              <td>在状态 \(s\) 执行动作 \(a\) 后到达的状态。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>4.3 Action-chunk kernel</h3>
+        <p>Action-chunk family 的 token 包含 primitive action 和可完整执行的 chunk：</p>
+        <div class="formula">
+          \[
+          \mathcal T_{\mathrm C}(s)
+          =
+          \mathcal A(s)\cup\mathcal G(s)
+          \]
+        </div>
+        <p>若 chunk 为 \(g=(a_1,\ldots,a_L)\)，其终点按任务转移函数逐步计算：</p>
+        <div class="formula">
+          \[
+          s_0=s,
+          \qquad
+          s_i=T(s_{i-1},a_i),
+          \quad i=1,\ldots,L,
+          \qquad
+          f(s,g)=s_L
+          \]
+        </div>
+        <p>因此 action-chunk transition kernel 为：</p>
+        <div class="formula">
+          \[
+          P_{\mathrm C}(s'\mid s)
+          =
+          \sum_{\substack{g\in\mathcal T_{\mathrm C}(s):\\ f(s,g)=s'}}
+          w_{\mathcal G}(g\mid s)
+          \]
+        </div>
+        <table class="symbol-table">
+          <thead>
+            <tr>
+              <th>符号</th>
+              <th>含义</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>\(\mathcal T_{\mathrm C}(s)\)</td>
+              <td>chunk family 在状态 \(s\) 下可选的 token 集合。</td>
+            </tr>
+            <tr>
+              <td>\(\mathcal G(s)\)</td>
+              <td>状态 \(s\) 下可完整合法执行的 chunk 集合。</td>
+            </tr>
+            <tr>
+              <td>\(g=(a_1,\ldots,a_L)\)</td>
+              <td>一个 chunk token，由 \(L\) 个 primitive action 组成。</td>
+            </tr>
+            <tr>
+              <td>\(s_0,\ldots,s_L\)</td>
+              <td>从起点 \(s\) 执行 chunk \(g\) 时经过的状态序列。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="note">
+          实现时只把可执行 token 放入 \(\mathcal T_M(s)\)。如果多个 token 到达同一个 \(s'\)，
+          它们的权重相加。构造 transition kernel 时使用 token 完整执行后的终点；
+          执行阶段若提前到达 trial goal，可以单独截断行为轨迹。
+        </div>
+
+        <h3>4.4 Landmark kernel</h3>
+        <p>
+          Landmark family 不通过 token 终点汇总计算 kernel。它的静态表征已经直接存储三个 CPD blocks，
+          kernel 由 source 和 target 的类型查表得到。
+        </p>
+        <div class="formula">
+          \[
+          P_{\mathrm L}(v'\mid v)
+          =
+          \begin{cases}
+          p_{\mathcal L\mathcal L}(\ell'\mid\ell),
+          & v=\ell,\ v'=\ell',
+          \\[4pt]
+          p_{\mathcal L\mathcal U}(u\mid\ell),
+          & v=\ell,\ v'=u,
+          \\[4pt]
+          p_{\mathcal U\mathcal L}(\ell\mid u),
+          & v=u,\ v'=\ell,
+          \\[4pt]
+          0,
+          & v=u,\ v'=u'.
+          \end{cases}
+          \]
+        </div>
+        <table class="symbol-table">
+          <thead>
+            <tr>
+              <th>符号</th>
+              <th>含义</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>\(v,v'\)</td>
+              <td>landmark kernel 中的 source state 和 target state。</td>
+            </tr>
+            <tr>
+              <td>\(\ell,\ell'\in\mathcal L\)</td>
+              <td>landmark 状态。</td>
+            </tr>
+            <tr>
+              <td>\(u,u'\in\mathcal U\)</td>
+              <td>non-landmark 状态。</td>
+            </tr>
+            <tr>
+              <td>\(p_{\mathcal L\mathcal L}\)</td>
+              <td>从 landmark 到 landmark 的 CPD block。</td>
+            </tr>
+            <tr>
+              <td>\(p_{\mathcal L\mathcal U}\)</td>
+              <td>从 landmark 到 non-landmark 的 CPD block。</td>
+            </tr>
+            <tr>
+              <td>\(p_{\mathcal U\mathcal L}\)</td>
+              <td>从 non-landmark 到 landmark 的 CPD block。</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>按 \((\mathcal L,\mathcal U)\) 排列状态时，矩阵形式为：</p>
+        <div class="formula">
+          \[
+          P_{\mathrm L}
+          =
+          \begin{bmatrix}
+          P_{\mathcal L\mathcal L} & P_{\mathcal L\mathcal U}
+          \\
+          P_{\mathcal U\mathcal L} & \mathbf 0
+          \end{bmatrix}
+          \]
+        </div>
+        <div class="note">
+          右下角零块表示 non-landmark 之间没有直接认知转移。
+          因此 landmark kernel 的计算是
+          stored CPD blocks \(\rightarrow\) block lookup \(\rightarrow P_{\mathrm L}\)，
+          不是从 landmark set 自动推导概率。
+        </div>
+      </section>
+
+      <section id="distance">
+        <h2>5. 从 Transition 到认知几何</h2>
+        <h3>5.1 有向边与 surprisal cost</h3>
+        <p>给定任意 family 的 transition kernel \(P_M(s'\mid s)\)，先定义有向边集合：</p>
+
+        <div class="formula">
+          \[
+          \mathcal E_M
+          =
+          \{(s,s')\in\mathcal S^2:P_M(s'\mid s)>0\}
+          \]
+        </div>
+
+        <p>每条边的长度为负对数转移概率：</p>
+
+        <div class="formula">
+          \[
+          c_M(s,s')
+          =
+          -\log P_M(s'\mid s),
+          \qquad
+          c_M(s,s')=\infty
+          \ \text{if }P_M(s'\mid s)=0
+          \]
+        </div>
+
+        <h3>5.2 Directed distance</h3>
+        <p>任意两个状态之间的 directed distance 是该有向加权图上的最短路长度：</p>
+
+        <div class="formula">
+          \[
+          d_M^{\rightarrow}(s,t)
+          =
+          \min_{\pi:s\leadsto t}
+          \sum_{(u,v)\in\pi}c_M(u,v)
+          \]
+        </div>
+
+        <p>其中 \(\pi:s\leadsto t\) 表示从 \(s\) 到 \(t\) 的所有有向路径。由于 \(P_M(s'\mid s)\) 通常非对称，因此一般有：</p>
+
+        <div class="formula">
+          \[
+          d_M^{\rightarrow}(s,t)
+          \ne
+          d_M^{\rightarrow}(t,s)
+          \]
+        </div>
+
+        <div class="note">
+          实现上，这一步输入 \(P_M\)，输出 \(\mathcal E_M\)、\(c_M\) 和
+          \(d_M^{\rightarrow}\)。最短路可以用 Dijkstra 或 Floyd-Warshall 计算。
+        </div>
+
+        <h3 id="map">5.3 对称化距离与地图嵌入</h3>
+        <p>上面得到的 \(d_M^{\rightarrow}\) 是有向距离，不能直接作为二维地图距离使用。为了可视化，先将其对称化：</p>
+
+        <div class="formula">
+          \[
+          D_M(s,t)
+          =
+          \frac{
+          d_M^{\rightarrow}(s,t)
+          +
+          d_M^{\rightarrow}(t,s)
+          }{2}
+          \]
+        </div>
+
+        <p>然后对 \(D_M\) 做 classical MDS，得到二维坐标：</p>
+
+        <div class="formula">
+          \[
+          \psi_M:\mathcal S\rightarrow \mathbb R^2
+          \]
+        </div>
+
+        <p>
+          其中 \(\psi_M(s)\) 表示状态 \(s\) 在二维认知地图中的位置。
+          \(D_M\) 用于地图嵌入；\(\psi_M\) 同时用于可视化和第 6 节的 A* heuristic。
+          A* 搜索的仍然是 cognitive transition graph，不是二维嵌入图。
+        </p>
+      </section>
+
+      <section id="planning">
+        <h2>6. A* 搜索与路径展开</h2>
+        <h3>6.1 Cognitive graph 上的搜索</h3>
+        <p>A* 搜索的对象是第 5 节得到的 cognitive transition graph：</p>
+
+        <div class="formula">
+          \[
+          \mathcal G_M^{\mathrm{cog}}
+          =
+          (\mathcal V_M,\mathcal E_M,c_M)
+          \]
+        </div>
+
+        <p>
+          其中 \(\mathcal V_M\) 是状态节点集合，\(\mathcal E_M\) 是由 \(P_M(s'\mid s)>0\)
+          定义的有向边集合，\(c_M\) 是每条边的代价。
+        </p>
+
+        <p>在当前节点 \(s\)，A* 枚举表征诱导出的 successor states：</p>
+
+        <div class="formula">
+          \[
+          \mathrm{Succ}_M(s)
+          =
+          \{s'\in\mathcal V_M:(s,s')\in\mathcal E_M\}
+          \]
+        </div>
+
+        <p>给定起点 \(s_0\) 和目标 \(s_\star\)，A* 使用评分函数：</p>
+
+        <div class="formula">
+          \[
+          F_M(s)=G_M(s)+H_M(s,s_\star)
+          \]
+        </div>
+
+        <p>
+          其中 \(G_M(s)\) 是从 \(s_0\) 到当前节点 \(s\) 的累计 cost，
+          \(H_M(s,s_\star)\) 是从 \(s\) 到目标 \(s_\star\) 的 heuristic。
+          按原文设定，heuristic 由地图嵌入给出：
+        </p>
+
+        <div class="formula">
+          \[
+          H_M(s,s_\star)
+          =
+          \alpha_M
+          \left\|
+          \psi_M(s)-\psi_M(s_\star)
+          \right\|_2
+          \]
+        </div>
+
+        <p>\(\alpha_M\) 是缩放系数，用于把二维嵌入距离调整到 edge cost 的尺度。</p>
+
+        <p>A* 输出一条 cognitive path：</p>
+
+        <div class="formula">
+          \[
+          \pi^\star
+          =
+          (s_0,s_1,\ldots,s_K=s_\star),
+          \qquad
+          (s_i,s_{i+1})\in\mathcal E_M
+          \]
+        </div>
+
+        <div class="note">
+          本节只定义 cognitive graph 上的搜索过程。
+          每条 cognitive edge 如何展开为实际动作序列和观测状态序列，在下一小节定义。
+        </div>
+
+        <h3>6.2 Cognitive edge 的执行展开</h3>
+        <p>
+          A* 输出的是 cognitive path。执行阶段需要把每条 cognitive edge
+          \((s_i,s_{i+1})\) 展开为 primitive action sequence 和实际状态序列。
+        </p>
+
+        <h4>6.2.1 Primitive</h4>
+        <p>对边 \((s,s')\)，找到所有支持该边的 primitive action：</p>
+        <div class="formula">
+          \[
+          \mathcal A_{s\to s'}
+          =
+          \{a\in\mathcal A(s):T(s,a)=s'\}
+          \]
+        </div>
+        <p>然后按归一化权重选择动作：</p>
+        <div class="formula">
+          \[
+          P(a\mid s,s')
+          =
+          \frac{
+          w_{\mathrm P}(a\mid s)
+          }{
+          \sum_{a'\in\mathcal A_{s\to s'}}
+          w_{\mathrm P}(a'\mid s)
+          }
+          \]
+        </div>
+        <p>执行结果为动作序列 \((a)\) 和状态序列 \((s,s')\)。</p>
+
+        <h4>6.2.2 Action-chunk</h4>
+        <p>对边 \((s,s')\)，找到所有支持该边的 token：</p>
+        <div class="formula">
+          \[
+          \mathcal T_{s\to s'}
+          =
+          \{\tau\in\mathcal T_{\mathcal G}(s):f(s,\tau)=s'\}
+          \]
+        </div>
+        <p>然后按归一化权重选择 token：</p>
+        <div class="formula">
+          \[
+          P(\tau\mid s,s')
+          =
+          \frac{
+          w_{\mathcal G}(\tau\mid s)
+          }{
+          \sum_{\tau'\in\mathcal T_{s\to s'}}
+          w_{\mathcal G}(\tau'\mid s)
+          }
+          \]
+        </div>
+        <p>若采样到的 token 为 \(\tau=(a_1,\ldots,a_L)\)，则动作序列为 \((a_1,\ldots,a_L)\)。状态序列由任务转移函数展开：</p>
+        <div class="formula">
+          \[
+          x_0=s,
+          \qquad
+          x_i=T(x_{i-1},a_i),
+          \quad i=1,\ldots,L,
+          \qquad
+          x_L=s'
+          \]
+        </div>
+
+        <h4>6.2.3 Landmark</h4>
+        <p>
+          Landmark 的 cognitive edge \((s,s')\) 来自 CPD block，不直接对应 primitive action 或 chunk。
+          执行时在原始任务图 \(\mathcal K_0\) 上找到所有从 \(s\) 到 \(s'\) 的 primitive shortest paths：
+        </p>
+        <div class="formula">
+          \[
+          \Omega^\ast(s,s')
+          =
+          \{\rho:\rho \text{ is a shortest primitive path from }s\text{ to }s'\}
+          \]
+        </div>
+        <p>然后均匀采样一条：</p>
+        <div class="formula">
+          \[
+          \rho\sim\mathrm{Uniform}(\Omega^\ast(s,s'))
+          \]
+        </div>
+        <p>该路径 \(\rho\) 同时给出 primitive action sequence 和实际状态序列。</p>
+
+        <h4>6.2.4 终止规则</h4>
+        <div class="note">
+          在执行展开过程中，如果实际状态序列提前到达 trial goal \(s_\star\)，
+          则立即终止 trial，不再继续展开后续 cognitive edges。
+        </div>
+      </section>
+
+      <section id="conclusion">
+        <h2>7. 宏观结论</h2>
+        <div class="box">
+          本框架的统一接口是状态转移核。primitive、chunk 和 landmark 的表征内容不同，
+          但它们都必须先转换成同一形式的 \(P_M(s'\mid s)\)。
+        </div>
+        <div class="formula">
+          \[
+          (\mathcal K_0,\mathcal R_M)
+          \longrightarrow
+          P_M
+          \longrightarrow
+          c_M
+          \longrightarrow
+          d_M^{\rightarrow}
+          \]
+        </div>
+        <p>
+          给定同一个任务 \(\mathcal K_0\) 后，表征差异体现在 \(\mathcal R_M\rightarrow P_M\) 这一步。
+          得到 \(P_M\) 后，三类表征共享同一套有向代价和有向距离计算。
+        </p>
+        <p>
+          A* 在 cognitive transition graph 上搜索。
+          认知地图嵌入 \(\psi_M\) 由 \(d_M^{\rightarrow}\) 对称化后的 \(D_M\) 经 MDS 得到，
+          并为 A* 提供 heuristic。
+        </p>
+        <p>
+          因此，\(\psi_M\) 不是被搜索的图；它只提供二维地图表征和 A* heuristic。
+        </p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

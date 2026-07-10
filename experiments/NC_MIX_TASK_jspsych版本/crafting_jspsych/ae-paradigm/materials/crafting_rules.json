@@ -1,0 +1,43 @@
+{
+  "schema": "crafting_web_rules",
+  "version": "1.0",
+  "map_id": "custom",
+  "potion1": {
+    "stone_01": "stone_02",
+    "stone_02": "stone_03",
+    "stone_04": "stone_05",
+    "stone_05": "stone_06",
+    "stone_07": "stone_08",
+    "stone_08": "stone_09"
+  },
+  "potion1_rev": {
+    "stone_02": "stone_01",
+    "stone_03": "stone_02",
+    "stone_05": "stone_04",
+    "stone_06": "stone_05",
+    "stone_08": "stone_07",
+    "stone_09": "stone_08"
+  },
+  "potion2": {
+    "stone_01": "stone_04",
+    "stone_02": "stone_05",
+    "stone_03": "stone_06",
+    "stone_04": "stone_07",
+    "stone_05": "stone_08",
+    "stone_06": "stone_09"
+  },
+  "potion2_rev": {
+    "stone_04": "stone_01",
+    "stone_05": "stone_02",
+    "stone_06": "stone_03",
+    "stone_07": "stone_04",
+    "stone_08": "stone_05",
+    "stone_09": "stone_06"
+  },
+  "potion3": {
+    "stone_01": "stone_03",
+    "stone_03": "stone_09",
+    "stone_07": "stone_01",
+    "stone_09": "stone_07"
+  }
+}

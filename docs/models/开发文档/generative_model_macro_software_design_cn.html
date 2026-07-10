@@ -1,0 +1,1542 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>认知导航模块软件设计说明</title>
+  <style>
+    :root {
+      --text: #111111;
+      --muted: #555555;
+      --line: #d9d9d9;
+      --soft: #f7f7f7;
+      --code: #f2f2f2;
+      --accent: #1f5f99;
+      --accent-soft: #eef6fc;
+      --ok-soft: #eef8f1;
+      --warn-soft: #fff8e6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #ffffff;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.72;
+      font-size: 16px;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 40px 28px 84px;
+    }
+
+    header {
+      border-bottom: 2px solid var(--text);
+      padding-bottom: 22px;
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 42px 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--line);
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 28px 0 10px;
+      font-size: 19px;
+      letter-spacing: 0;
+    }
+
+    h4 {
+      margin: 20px 0 8px;
+      font-size: 17px;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 10px 0;
+    }
+
+    ul,
+    ol {
+      margin: 10px 0 16px;
+      padding-left: 24px;
+    }
+
+    li {
+      margin: 6px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 22px;
+      font-size: 15px;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: var(--soft);
+      font-weight: 700;
+    }
+
+    code {
+      border: 1px solid #e4e4e4;
+      border-radius: 4px;
+      background: var(--code);
+      padding: 1px 5px;
+      color: #111111;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+    }
+
+    pre {
+      overflow-x: auto;
+      margin: 14px 0 20px;
+      border: 1px solid #e4e4e4;
+      border-radius: 6px;
+      background: var(--code);
+      padding: 14px 16px;
+      line-height: 1.55;
+    }
+
+    pre code {
+      border: 0;
+      background: transparent;
+      padding: 0;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .lead {
+      max-width: 980px;
+      margin-top: 16px;
+      font-size: 18px;
+    }
+
+    .toc {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 8px 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 14px 16px;
+    }
+
+    .toc a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .toc a:hover {
+      text-decoration: underline;
+    }
+
+    .box {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+      padding: 14px 16px;
+      margin: 16px 0;
+    }
+
+    .box.accent {
+      border-color: #b6d7ef;
+      background: var(--accent-soft);
+    }
+
+    .box.ok {
+      border-color: #b8dfc5;
+      background: var(--ok-soft);
+    }
+
+    .box.warn {
+      border-color: #ead89e;
+      background: var(--warn-soft);
+    }
+
+    .math-inline {
+      white-space: nowrap;
+      font-family: "Times New Roman", "Noto Serif CJK SC", serif;
+      font-style: italic;
+    }
+
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+      margin: 16px 0 22px;
+    }
+
+    .stage {
+      min-height: 112px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 12px 10px;
+    }
+
+    .stage strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .stage span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .decision {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr);
+      gap: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 12px 14px;
+      margin: 12px 0;
+    }
+
+    .decision dt {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .decision dd {
+      margin: 0;
+    }
+
+    @media (max-width: 720px) {
+      main {
+        padding: 28px 18px 56px;
+      }
+
+      h1 {
+        font-size: 27px;
+      }
+
+      h2 {
+        font-size: 22px;
+      }
+
+      table {
+        font-size: 14px;
+      }
+
+      .decision {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>认知导航模块软件设计说明</h1>
+    <div class="meta">基线文档：<code>generative_model_macro_framework_cn.html</code>，<code>generative_model_macro_requirements_cn.html</code></div>
+    <p class="lead">
+      本文档面向当前宏观数学框架的软件落地，说明系统分层、模块职责、核心数据结构、
+      算法流程、校验与异常策略、输出 artifact 和实现顺序。设计核心是 kernel-first：
+      三类表征只在 <span class="math-inline">R_M -> P_M</span> 阶段分化，
+      得到 row-stochastic transition kernel 后，共享 cognitive graph、distance、MDS、A* 和 edge expansion 编排流程。
+    </p>
+  </header>
+
+  <nav class="toc" aria-label="目录">
+    <a href="#purpose">1. 文档目的</a>
+    <a href="#principles">2. 设计原则</a>
+    <a href="#scope">3. 设计范围</a>
+    <a href="#architecture">4. 总体架构</a>
+    <a href="#modules">5. 模块设计</a>
+    <a href="#domain">6. 核心数据模型</a>
+    <a href="#algorithms">7. 核心算法设计</a>
+    <a href="#pipeline">8. Agent 编排</a>
+    <a href="#validation">9. 校验与异常设计</a>
+    <a href="#serialization">10. 序列化与可追溯性</a>
+    <a href="#config">11. 配置与随机性</a>
+    <a href="#quality">12. 质量属性</a>
+    <a href="#implementation">13. 实现顺序</a>
+    <a href="#traceability">14. 需求追踪矩阵</a>
+    <a href="#decisions">15. 设计决策</a>
+  </nav>
+
+  <section id="purpose">
+    <h2>1. 文档目的</h2>
+    <p>
+      本文档描述如何把当前数学模型和需求分析转化为可实现、可测试、可审计的软件结构。
+      它不依赖任何现有代码实现细节，也不规定最终必须采用某个具体文件名或第三方库；
+      但会给出推荐的模块边界、数据结构、接口契约和算法步骤。
+    </p>
+    <p>设计目标包括：</p>
+    <ul>
+      <li>把 <span class="math-inline">K_0</span>、<span class="math-inline">R_M</span>、<span class="math-inline">P_M</span>、cognitive graph、distance、embedding、A* 和 expansion 表达为明确的软件对象。</li>
+      <li>把 primitive、action-chunk、landmark 的差异限制在 representation、kernel construction 和 edge expansion 层。</li>
+      <li>保证每个 pipeline stage 可以单独验证，并能输出足够的中间 artifact 支撑调试和测试。</li>
+      <li>让正向生成流程在失败时返回可识别、可定位的错误，而不是产生静默错误结果。</li>
+    </ul>
+  </section>
+
+  <section id="principles">
+    <h2>2. 设计原则</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>原则</th>
+          <th>设计含义</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Kernel-first</td>
+          <td>transition kernel 是统一接口。后续图、距离、嵌入和规划逻辑只依赖 kernel，不直接依赖表征内部字段。</td>
+        </tr>
+        <tr>
+          <td>Stage isolation</td>
+          <td>每个阶段输入输出清晰，不把校验、kernel 构造、图算法、搜索和展开混在同一个函数中。</td>
+        </tr>
+        <tr>
+          <td>Explicit provenance</td>
+          <td>每个 kernel edge、A* edge 和 expansion step 都能追溯来源，便于核查概率、cost 和采样结果。</td>
+        </tr>
+        <tr>
+          <td>Deterministic by configuration</td>
+          <td>所有随机采样由显式 RNG 控制；所有 tie-breaking 采用固定顺序并记录到 metadata。</td>
+        </tr>
+        <tr>
+          <td>Fail explicitly</td>
+          <td>输入非法、概率不归一、distance 不有限、goal 不可达或 expansion 不可执行时，返回明确错误或状态。</td>
+        </tr>
+        <tr>
+          <td>Small graph clarity</td>
+          <td>当前研究任务规模较小，优先使用清晰直接的算法；性能优化必须保持数学语义不变。</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="scope">
+    <h2>3. 设计范围</h2>
+    <h3>3.1 输入对象</h3>
+    <ul>
+      <li>确定性 primitive task graph：状态、动作、合法动作、转移函数和 primitive cost。</li>
+      <li>三类静态表征：primitive action weights、action-chunk token weights、landmark CPD blocks。</li>
+      <li>可选表征构造参数：用于从 task 和显式规则构造 primitive、chunk 或 landmark representation。</li>
+      <li>trial 描述：起点、目标、表征类型、可选随机种子。</li>
+      <li>运行配置：数值容差、MDS 参数、A* heuristic scale、tie-breaking、路径枚举上限。</li>
+    </ul>
+
+    <h3>3.2 输出对象</h3>
+    <ul>
+      <li>模型 artifact：transition kernel、kernel support、cognitive graph、directed distance、symmetric distance、embedding。</li>
+      <li>规划 artifact：A* trace、cognitive path、path cost、search diagnostics。</li>
+      <li>执行 artifact：edge expansion trace、primitive actions、observed states、提前终止记录。</li>
+      <li>运行 metadata：输入标识、配置、随机种子、状态、失败阶段与失败原因。</li>
+    </ul>
+
+    <h3>3.3 边界</h3>
+    <ul>
+      <li>本文档只设计正向生成 pipeline，不设计参数学习、反推、交互式可视化或实验数据清洗流程。</li>
+      <li>RepresentationBuilder 可以根据 task 和显式参数构造表征，但不负责从数据中学习或推断表征参数。</li>
+      <li>二维 embedding 是 artifact 和 heuristic 来源，A* 搜索图始终是由 transition kernel 生成的 cognitive graph。</li>
+      <li>landmark 被设计为 concrete state set；CPD blocks 是 landmark kernel 的唯一概率来源。</li>
+    </ul>
+  </section>
+
+  <section id="architecture">
+    <h2>4. 总体架构</h2>
+    <p>系统采用分层 pipeline 架构。上层编排负责把阶段串起来，下层模块只处理自己的输入输出。</p>
+
+    <div class="pipeline" aria-label="软件架构流程">
+      <div class="stage">
+        <strong>Input</strong>
+        <span>TaskGraph、Representation 或 RepresentationSpec、TrialSpec、Config。</span>
+      </div>
+      <div class="stage">
+        <strong>Representation</strong>
+        <span>可选：由 TaskGraph 和显式参数构造静态表征。</span>
+      </div>
+      <div class="stage">
+        <strong>Validation</strong>
+        <span>结构合法性、概率归一化、可执行 token、CPD blocks。</span>
+      </div>
+      <div class="stage">
+        <strong>Kernel</strong>
+        <span>family-specific builder 生成 TransitionKernel 与 KernelSupport。</span>
+      </div>
+      <div class="stage">
+        <strong>Geometry</strong>
+        <span>cognitive graph、cost、directed distance、symmetric distance、MDS。</span>
+      </div>
+      <div class="stage">
+        <strong>Planning</strong>
+        <span>A* 在 cognitive graph 上输出 cognitive path。</span>
+      </div>
+      <div class="stage">
+        <strong>Expansion</strong>
+        <span>按表征类型把 cognitive edge 展开为 primitive trajectory。</span>
+      </div>
+      <div class="stage">
+        <strong>Output</strong>
+        <span>RunResult、artifacts、trace、metadata、可序列化结果。</span>
+      </div>
+    </div>
+
+    <h3>4.1 推荐包结构</h3>
+    <p>
+      初版实现采用认知功能导向的模块命名。包名使用 <code>cognitivemap.cognitive_navigation</code>，
+      表示该模块围绕认知表征驱动的导航、规划和轨迹展开，而不是围绕某个实现阶段命名。
+    </p>
+    <pre><code>cognitivemap.cognitive_navigation/
+  __init__.py
+  types.py               # 数据模型、枚举、配置、错误类型、序列化 helper
+  task.py                # TaskGraph、primitive execution、shortest paths
+  representations.py     # 三类 Representation、RepresentationBuilder、token 查询、表征校验
+  kernel.py              # TransitionKernel 与 family-specific builders
+  cognitive_graph.py     # cognitive edge、-log(P) cost、distance、MDS
+  planning.py            # A* 搜索、edge expansion、执行 trace
+  agent.py               # CognitiveNavigationAgent、统一运行入口、artifact 输出</code></pre>
+
+    <div class="box accent">
+      这里的 <code>cognitive_graph.py</code> 不是通用图工具模块，而是当前数学模型中的认知图层：
+      <span class="math-inline">P_M -> E_M -> c_M -> d_M -> D_M -> psi_M</span>。
+      因此不使用泛化的 <code>graph.py</code> 命名。
+    </div>
+
+    <h3>4.2 依赖方向</h3>
+    <pre><code>types
+  -> task
+  -> representations
+  -> kernel
+  -> cognitive_graph
+  -> planning
+  -> agent</code></pre>
+    <p>
+      上游模块不得依赖下游模块。例如 representation 不应依赖 A*，kernel builder 不应依赖 run result。
+      <code>planning.py</code> 可以调用 expansion 逻辑，但 A* 的核心函数仍然只依赖 <code>CognitiveGraph</code>、
+      <code>Embedding</code> 和规划配置。
+    </p>
+  </section>
+
+  <section id="modules">
+    <h2>5. 模块设计</h2>
+
+    <h3>5.1 types.py</h3>
+    <p>
+      定义跨模块共享的数据模型、枚举、配置、错误类型和基础序列化 helper。
+      初版将这些轻量横切对象放在同一模块，避免过早拆出过多薄文件。
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>对象</th>
+          <th>职责</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>StateId</code></td>
+          <td>状态标识。推荐使用 <code>str | int</code>，内部统一映射到稳定 index。</td>
+        </tr>
+        <tr>
+          <td><code>ActionId</code></td>
+          <td>primitive action 标识。</td>
+        </tr>
+        <tr>
+          <td><code>Family</code></td>
+          <td><code>primitive</code>、<code>chunk</code>、<code>landmark</code> 三值枚举。</td>
+        </tr>
+        <tr>
+          <td><code>Token</code></td>
+          <td>tagged union：<code>PrimitiveToken</code> 或 <code>ChunkToken</code>。</td>
+        </tr>
+        <tr>
+          <td><code>Probability</code></td>
+          <td>语义类型，表示闭区间 <code>[0,1]</code> 内的浮点概率。</td>
+        </tr>
+        <tr>
+          <td><code>PlanningConfig</code></td>
+          <td>数值容差、A* heuristic scale、tie-breaking、MDS 维度和路径枚举上限。</td>
+        </tr>
+        <tr>
+          <td><code>CognitiveNavigationError</code></td>
+          <td>所有可识别错误的基类；具体错误作为子类或错误码定义在同一模块。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>5.2 task.py</h3>
+    <p>提供 primitive task graph 的构造、只读查询、token execution 和 primitive shortest-path 算法。</p>
+    <ul>
+      <li><code>TaskGraph.from_transitions(...)</code>：从嵌套字典形式的 transition 输入构造完整 <code>TaskGraph</code>。</li>
+      <li><code>legal_actions(state)</code>：返回状态下合法 primitive actions。</li>
+      <li><code>next_state(state, action)</code>：执行合法 action 后的确定性目标状态。</li>
+      <li><code>action_cost(state, action)</code>：返回 <span class="math-inline">kappa(s,a)</span>。</li>
+      <li><code>execute_token(start, token)</code>：执行 primitive token 或 chunk token，返回完整 action/state trace。</li>
+      <li><code>shortest_distance(source, target)</code>：返回 primitive shortest-path distance。</li>
+      <li><code>all_shortest_paths(source, target, limit)</code>：枚举 shortest primitive paths，供 landmark expansion 使用。</li>
+    </ul>
+    <p>
+      正式任务输入以 <code>transitions</code> 为核心。用户只需要显式给出每个 source state 下
+      每个 action 到达的 target state；<code>states</code>、<code>actions</code>、
+      <code>legal_actions</code> 和默认 <code>action_costs</code> 由构造函数推导。
+      这可以自然表示带 <code>loop</code> 等非空间相邻动作的任务图。
+    </p>
+
+    <h3>5.3 representations.py</h3>
+    <p>定义三类静态表征、状态相关 token 查询和表征校验。</p>
+    <table>
+      <thead>
+        <tr>
+          <th>类</th>
+          <th>核心字段</th>
+          <th>核心方法</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>PrimitiveRepresentation</code></td>
+          <td><code>action_weights_by_state</code></td>
+          <td><code>tokens_at(state)</code> 返回合法 primitive tokens；<code>weight(state, token)</code> 返回权重。</td>
+        </tr>
+        <tr>
+          <td><code>ChunkRepresentation</code></td>
+          <td><code>chunk_inventory</code>、<code>token_weights_by_state</code></td>
+          <td><code>executable_chunks_at(state, task)</code>；<code>tokens_at(state, task)</code> 返回 primitive tokens 与可执行 chunk tokens。</td>
+        </tr>
+        <tr>
+          <td><code>LandmarkRepresentation</code></td>
+          <td><code>landmarks</code>、<code>p_ll</code>、<code>p_lu</code>、<code>p_ul</code></td>
+          <td><code>block_for(source, target)</code> 返回 CPD block 类型与概率。</td>
+        </tr>
+      </tbody>
+    </table>
+    <h4>RepresentationBuilder</h4>
+    <p>
+      <code>RepresentationBuilder</code> 是可选工厂，用于从 <code>TaskGraph</code> 和显式参数/规则构造表征。
+      它可以读取 task 的状态集合、动作集合和合法转移来补齐默认行、过滤不可执行 chunk 或校验 landmark key；
+      但它不从 task 唯一推断心理表征，也不学习权重或 CPD。
+    </p>
+    <pre><code>RepresentationBuilder:
+  build_primitive(task, action_weights | policy) -> PrimitiveRepresentation
+  build_chunk(task, chunk_inventory, token_weights | policy) -> ChunkRepresentation
+  build_landmark(task, landmarks, cpd_blocks) -> LandmarkRepresentation
+  validate_compatible(task, representation) -> None</code></pre>
+    <ul>
+      <li><code>build_primitive</code>：根据 task 的合法 action 行构造 primitive action weights；若使用默认 policy，必须明确写入生成规则。</li>
+      <li><code>build_chunk</code>：根据 task 过滤每个 state 下可完整执行的 chunk，并在 executable token set 上构造或校验权重。</li>
+      <li><code>build_landmark</code>：校验 landmarks 属于 task states，并校验 LL/LU/UL CPD blocks 与 <code>L/U</code> 集合一致。</li>
+      <li><code>validate_compatible</code>：只做兼容性校验，不修改 representation。</li>
+    </ul>
+    <p>
+      表征校验与表征对象放在同一模块：primitive 权重、chunk executable token row sum、
+      landmark CPD blocks 都需要访问表征内部字段，单独拆出校验模块会增加跳转成本。
+      表征是 task-related 的：它的状态、动作、chunk 和 CPD key 必须能与某个 <code>TaskGraph</code> 对齐；
+      但表征对象不持有 <code>TaskGraph</code>，只在运行时与传入任务做兼容性校验。
+    </p>
+
+    <h3>5.4 kernel.py</h3>
+    <p>把任务和表征转换为统一的 <code>TransitionKernel</code>，并并列输出 <code>KernelSupport</code>。</p>
+    <ul>
+      <li><code>build_transition_kernel(task, representation)</code>：按 family 分派到具体 builder，返回 <code>(TransitionKernel, KernelSupport)</code>。</li>
+      <li><code>build_primitive_kernel(...)</code>：按支持同一 endpoint 的 action 权重求和。</li>
+      <li><code>build_chunk_kernel(...)</code>：过滤 executable tokens，再按 endpoint 求和。</li>
+      <li><code>build_landmark_kernel(...)</code>：按 LL、LU、UL CPD block 查表拼接，U-U block 为 0。</li>
+    </ul>
+    <p>
+      kernel builder 必须同时输出 <code>KernelSupport</code>，
+      记录每条非零 edge 的概率来源，供 graph、expansion、测试和序列化使用。
+    </p>
+
+    <h3>5.5 cognitive_graph.py</h3>
+    <p>
+      从 kernel 生成 cognitive graph，并在同一认知图层内完成 cost、directed distance、
+      symmetric distance 和 classical MDS。该模块表达的是当前数学模型中的认知几何，不是通用图算法库。
+    </p>
+    <ul>
+      <li><code>build_cognitive_graph(kernel, config)</code>：从非零 kernel probability 生成 cognitive edges 和 <code>-log(P)</code> cost。</li>
+      <li><code>compute_directed_distances(graph)</code>：小图默认使用 Floyd-Warshall；也可按 source 使用 Dijkstra。</li>
+      <li><code>symmetrize_distances(directed)</code>：计算 <code>(d(s,t)+d(t,s))/2</code>。</li>
+      <li><code>compute_classical_mds(symmetric_distance, dim=2)</code>：执行 classical MDS，输出每个 state 的二维坐标。</li>
+      <li>MDS 输入必须有限；包含 <code>inf</code> 或 <code>NaN</code> 时进入 explicit error。</li>
+    </ul>
+
+    <h3>5.6 planning.py</h3>
+    <p>
+      负责 cognitive path planning 和 cognitive edge expansion。
+      A* 核心函数只依赖 cognitive graph、embedding、start、goal 和 planning config；
+      expansion 函数在 A* 输出 cognitive path 后，按表征类型把 edge 展开为 primitive trajectory。
+    </p>
+    <ul>
+      <li><code>plan_cognitive_path(graph, embedding, start, goal, config)</code>。</li>
+      <li>successor 来自 cognitive graph 的 directed edges。</li>
+      <li>edge cost 使用 cognitive graph 中保存的 <code>-log(P)</code>。</li>
+      <li>heuristic 使用 <code>alpha * euclidean_distance(embedding[start], embedding[goal])</code>。</li>
+      <li>输出 <code>AStarResult</code>，包括 path、path cost、expanded nodes、frontier diagnostics、status。</li>
+    </ul>
+    <p>edge expansion 的 family-specific 规则如下：</p>
+    <table>
+      <thead>
+        <tr>
+          <th>family</th>
+          <th>候选来源</th>
+          <th>采样规则</th>
+          <th>展开结果</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>primitive</td>
+          <td>满足 <code>T(s,a)=s'</code> 的合法 action。</td>
+          <td>按 edge 条件下的 action weights 归一化采样。</td>
+          <td>单个 action 与 <code>[s,s']</code>。</td>
+        </tr>
+        <tr>
+          <td>chunk</td>
+          <td>满足 <code>f(s,token)=s'</code> 的 primitive/chunk token。</td>
+          <td>按 edge 条件下的 token weights 归一化采样。</td>
+          <td>token 对应的完整 primitive action/state trace。</td>
+        </tr>
+        <tr>
+          <td>landmark</td>
+          <td>原始任务图上从 <code>s</code> 到 <code>s'</code> 的 shortest primitive paths。</td>
+          <td>在所有 shortest paths 中均匀采样。</td>
+          <td>采样 path 的 action/state trace。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>5.7 agent.py</h3>
+    <p>
+      提供面向调用方的统一载体 <code>CognitiveNavigationAgent</code>，负责持有
+      <code>Representation</code>、<code>PlanningConfig</code> 和最近一次构建的
+      <code>ModelArtifacts</code>。<code>TaskGraph</code> 是外部任务环境，不由 agent 拥有；
+      需要构建 artifact、搜索或运行 trial 时作为方法参数传入。Agent 是运行时门面，不承载 family-specific 数学逻辑；
+      具体计算仍委托给 <code>kernel.py</code>、<code>cognitive_graph.py</code> 和 <code>planning.py</code>。
+      初版不单独拆出 <code>serialization.py</code>，避免 artifact schema 和 run result 在两个模块之间来回跳转。
+    </p>
+    <ul>
+      <li><code>CognitiveNavigationAgent(representation, config)</code>：创建带有某种认知表征的导航主体。</li>
+      <li><code>agent.build_artifacts(task)</code>：对给定任务完成校验、kernel、graph、distance、embedding，并缓存 <code>ModelArtifacts</code>。</li>
+      <li><code>agent.plan(task, start_state, goal_state)</code>：在给定任务环境中执行 cognitive graph 上的 A*。</li>
+      <li><code>agent.run_trial(task, trial_spec)</code>：在给定任务环境中执行 A* 和 expansion，输出单 trial 结果。</li>
+      <li><code>agent.run_batch(task, trials)</code>：批量运行，复用同一 task 下的 model artifacts。</li>
+      <li><code>to_dict(result)</code> / <code>to_json(result)</code>：输出稳定 schema，保留中间 artifacts 与 trace。</li>
+    </ul>
+    <div class="box ok">
+      Agent 解决的是“统一载体”和“调用入口”问题，不改变 kernel-first 的分层原则。
+      算法模块仍保持可单独测试，agent 只负责编排、缓存、错误包装和输出组织。
+    </div>
+  </section>
+
+  <section id="domain">
+    <h2>6. 核心数据模型</h2>
+    <p>以下数据模型为设计契约，具体实现可用 dataclass、pydantic model 或等价结构。</p>
+
+    <h3>6.1 TaskGraph</h3>
+    <pre><code>TaskGraph:
+  task_id: str
+  states: list[StateId]                 # 稳定顺序，决定矩阵 index 与 tie-breaking
+  actions: list[ActionId]
+  legal_actions: dict[StateId, list[ActionId]]
+  transitions: dict[(StateId, ActionId), StateId]
+  action_costs: dict[(StateId, ActionId), float]</code></pre>
+    <p>约束：</p>
+    <ul>
+      <li><code>states</code> 不得为空，且不得包含重复值。</li>
+      <li><code>actions</code> 不得包含重复值。</li>
+      <li><code>legal_actions[state]</code> 中每个 action 必须属于 <code>actions</code>。</li>
+      <li><code>transitions[(state, action)]</code> 只对合法 action 定义，target 必须属于 <code>states</code>。</li>
+      <li><code>action_costs[(state, action)]</code> 必须为正数。</li>
+    </ul>
+    <p>
+      <code>TaskGraph</code> 是执行环境的完整定义，但第一版用户输入可以更简洁：
+      只显式输入嵌套字典形式的 <code>transitions</code>，其它字段由构造函数推导。
+    </p>
+    <pre><code>TaskGraph.from_transitions(
+  task_id: str,
+  transitions: dict[StateId, dict[ActionId, StateId]],
+  default_cost: float = 1.0,
+  cost_overrides: dict[StateId, dict[ActionId, float]] | null = null,
+) -> TaskGraph</code></pre>
+    <p>推导规则：</p>
+    <ul>
+      <li><code>states</code>：所有 source state 和 target state 的并集，按稳定顺序排序或按输入顺序保留。</li>
+      <li><code>actions</code>：所有 transition action key 的并集，按稳定顺序排序或按首次出现顺序保留。</li>
+      <li><code>legal_actions[state]</code>：等于 <code>transitions[state].keys()</code>。</li>
+      <li><code>transitions[(state, action)]</code>：由嵌套字典展开得到。</li>
+      <li><code>action_costs[(state, action)]</code>：默认使用 <code>default_cost</code>，若 <code>cost_overrides</code> 指定则覆盖。</li>
+    </ul>
+    <p>
+      对带 <code>loop</code> 的九宫格任务，<code>loop</code> 只是普通 action label。
+      它不需要满足空间相邻关系，只需要在 <code>transitions</code> 中显式给出目标状态。
+    </p>
+
+    <h3>6.2 Token</h3>
+    <pre><code>PrimitiveToken:
+  kind: "primitive"
+  action: ActionId
+
+ChunkToken:
+  kind: "chunk"
+  chunk_id: str
+  actions: tuple[ActionId, ...]</code></pre>
+    <p>
+      primitive token 和 chunk token 统一作为 action-chunk 表征中的候选 token。
+      token 的 identity 必须稳定，序列化时使用 <code>kind</code> 与 <code>id</code> 区分。
+    </p>
+
+    <h3>6.3 Representation</h3>
+    <pre><code>PrimitiveRepresentation:
+  representation_id: str
+  family: "primitive"
+  action_weights_by_state: dict[StateId, dict[ActionId, float]]
+
+ChunkRepresentation:
+  representation_id: str
+  family: "chunk"
+  chunk_inventory: dict[str, tuple[ActionId, ...]]
+  token_weights_by_state: dict[StateId, dict[str, float]]
+
+LandmarkRepresentation:
+  representation_id: str
+  family: "landmark"
+  landmarks: list[StateId]
+  p_ll: dict[StateId, dict[StateId, float]]
+  p_lu: dict[StateId, dict[StateId, float]]
+  p_ul: dict[StateId, dict[StateId, float]]</code></pre>
+    <p>chunk 的 <code>token_weights_by_state</code> 中，primitive token 建议用规范 ID 表示，例如 <code>primitive:right</code>；chunk token 使用 <code>chunk:g_rr</code>。</p>
+    <pre><code>RepresentationSpec:
+  family: Family
+  representation_id: str
+  parameters: dict                       # 显式权重、chunk inventory、landmark set 或 CPD blocks
+  defaults: dict                         # 可选默认规则，例如 uniform legal actions
+  metadata: dict</code></pre>
+    <p>
+      <code>RepresentationSpec</code> 是 <code>RepresentationBuilder</code> 的输入，不是运行期使用的表征。
+      builder 读取 task 后必须输出上述三类 <code>Representation</code> 之一；
+      agent 只接收已经构造完成的 representation。
+    </p>
+
+    <h3>6.4 TransitionKernel 与 KernelSupport</h3>
+    <pre><code>TransitionKernel:
+  family: Family
+  states: list[StateId]
+  matrix: list[list[float]]              # shape = len(states) x len(states)
+  row_index: dict[StateId, int]
+
+KernelSupport:
+  entries_by_edge: dict[(StateId, StateId), list[KernelSupportEntry]]
+
+KernelSupportEntry:
+  source: StateId
+  target: StateId
+  kind: "primitive_action" | "chunk_token" | "cpd_entry"
+  item_id: str
+  probability: float
+  endpoint: StateId
+  action_sequence: list[ActionId]
+  state_sequence: list[StateId]
+  cpd_block: "LL" | "LU" | "UL" | null</code></pre>
+    <p>
+      <code>TransitionKernel</code> 只表示状态转移概率矩阵。
+      <code>KernelSupport</code> 作为并列 artifact 保存概率来源，不内嵌在 <code>TransitionKernel</code> 中。
+      对 primitive/chunk，support entry 的 <code>probability</code> 是该 action/token 对 edge 概率的贡献。
+      对 landmark，support entry 的 <code>probability</code> 是 CPD entry 的概率，<code>action_sequence</code>
+      和 <code>state_sequence</code> 在 kernel 阶段为空，由 expansion 阶段填充。
+    </p>
+
+    <h3>6.5 CognitiveGraph</h3>
+    <pre><code>CognitiveGraph:
+  family: Family
+  states: list[StateId]
+  edges: list[CognitiveEdge]
+  successors: dict[StateId, list[StateId]]
+
+CognitiveEdge:
+  source: StateId
+  target: StateId
+  probability: float
+  cost: float                            # -log(probability)</code></pre>
+    <p><code>CognitiveEdge</code> 只保存 edge 的概率和 cost；概率来源统一通过 <code>KernelSupport</code> 查询。</p>
+
+    <h3>6.6 Distance 与 Embedding</h3>
+    <pre><code>DirectedDistance:
+  states: list[StateId]
+  matrix: list[list[float]]
+  unreachable_pairs: list[(StateId, StateId)]
+
+SymmetricDistance:
+  states: list[StateId]
+  matrix: list[list[float]]
+
+Embedding:
+  states: list[StateId]
+  coordinates: dict[StateId, tuple[float, float]]
+  eigenvalues: list[float]
+  status: "ready"</code></pre>
+    <p>本设计采用 fail-fast 策略：MDS 输入不有限时不生成 <code>Embedding(status="ready")</code>，而是抛出可识别错误。</p>
+
+    <h3>6.7 ModelArtifacts</h3>
+    <pre><code>ModelArtifacts:
+  task_id: str
+  representation_id: str
+  family: Family
+  transition_kernel: TransitionKernel
+  kernel_support: KernelSupport
+  cognitive_graph: CognitiveGraph
+  directed_distance: DirectedDistance
+  symmetric_distance: SymmetricDistance
+  embedding: Embedding</code></pre>
+    <p>
+      <code>ModelArtifacts</code> 是把某个 representation 应用到某个 task 后得到的可复用中间结果集合。
+      它不是输入表征，也不是单个 trial 的最终结果；agent 后续执行 <code>plan</code> 和 <code>run_trial</code>
+      时复用其中的 cognitive graph、embedding 和 kernel support。
+    </p>
+
+    <h3>6.8 TrialSpec、PlanningConfig 与 RunResult</h3>
+    <pre><code>TrialSpec:
+  trial_id: str
+  start_state: StateId
+  goal_state: StateId
+  family: Family
+  random_seed: int | null
+
+PlanningConfig:
+  alpha: float = 0.0
+  probability_epsilon: float = 1e-12
+  row_sum_tolerance: float = 1e-9
+  tie_breaking: "deterministic_state_order"
+  max_landmark_shortest_paths: int = 10000
+  mds_dim: int = 2
+
+RunResult:
+  status: "reached_goal" | "no_path" | "validation_error" | "embedding_error" | "expansion_error"
+  task_id: str
+  representation_id: str
+  family: Family
+  trial: TrialSpec
+  artifacts: ModelArtifacts | null
+  astar: AStarResult | null
+  expansion: ExpansionResult | null
+  metadata: RunMetadata
+  error: ErrorDetail | null</code></pre>
+    <p>
+      <code>alpha=0.0</code> 表示 A* 退化为基于 cognitive graph cost 的 Dijkstra 行为；
+      当调用方希望使用 embedding heuristic 时，显式传入正数 <code>alpha</code>。
+    </p>
+
+    <h3>6.9 AStarResult 与 ExpansionResult</h3>
+    <pre><code>AStarResult:
+  status: "found" | "no_path"
+  start_state: StateId
+  goal_state: StateId
+  cognitive_path: list[StateId]
+  path_cost: float | null
+  expanded_nodes: list[StateId]
+  visited_count: int
+  tie_breaking: str
+
+ExpansionResult:
+  status: "reached_goal" | "expansion_error"
+  cognitive_path: list[StateId]
+  edge_expansions: list[ExpansionTrace]
+  actions: list[ActionId]
+  states: list[StateId]
+  termination: TerminationRecord
+
+ExpansionTrace:
+  edge_index: int
+  source: StateId
+  target: StateId
+  family: Family
+  candidates: list[ExpansionCandidate]
+  candidate_probabilities: list[float]
+  sampled_index: int
+  sampled_item_id: str
+  actions: list[ActionId]
+  states: list[StateId]
+  reached_goal_at_step: int | null</code></pre>
+
+    <h3>6.10 CognitiveNavigationAgent</h3>
+    <pre><code>CognitiveNavigationAgent:
+  representation: PrimitiveRepresentation | ChunkRepresentation | LandmarkRepresentation
+  config: PlanningConfig
+  cached_task_id: str | null
+  cached_artifacts: ModelArtifacts | null
+
+  build_artifacts(task: TaskGraph, force: bool = false) -> ModelArtifacts
+  plan(task: TaskGraph, start_state: StateId, goal_state: StateId) -> AStarResult
+  run_trial(task: TaskGraph, trial: TrialSpec) -> RunResult
+  run_batch(task: TaskGraph, trials: list[TrialSpec]) -> list[RunResult]
+  to_dict(result: RunResult) -> dict
+  to_json(result: RunResult) -> str</code></pre>
+    <p>
+      Agent 的生命周期以一个 representation 和一份 config 为核心；task 是外部环境输入。
+      第一版只缓存最近一次 <code>ModelArtifacts</code>。若再次传入相同 <code>task_id</code> 且
+      <code>force=false</code>，agent 可以复用缓存；若 task 内容可能变化，调用方应传入
+      <code>force=true</code> 或创建新的 agent。
+    </p>
+  </section>
+
+  <section id="algorithms">
+    <h2>7. 核心算法设计</h2>
+
+    <h3>7.1 Primitive Kernel</h3>
+    <pre><code>for source in task.states:
+    row = zeros(len(task.states))
+    for action in task.legal_actions(source):
+        target = task.next_state(source, action)
+        p = representation.weight(source, action)
+        row[target_index[target]] += p
+        support[(source, target)].append(action_support(action, p))
+    assert_normalized(row)
+return TransitionKernel(matrix), KernelSupport(support)</code></pre>
+    <p>如果多个 action 到达同一 target，edge probability 为这些 action 权重之和。</p>
+
+    <h3>7.2 Chunk Kernel</h3>
+    <pre><code>for source in task.states:
+    row = zeros(len(task.states))
+    tokens = primitive_tokens_at(source) + executable_chunk_tokens_at(source)
+    for token in tokens:
+        trace = task.execute_token(source, token)
+        target = trace.states[-1]
+        p = representation.weight(source, token)
+        row[target_index[target]] += p
+        support[(source, target)].append(token_support(token, p, trace))
+    assert_normalized(row)
+return TransitionKernel(matrix), KernelSupport(support)</code></pre>
+    <p>
+      <code>executable_chunk_tokens_at</code> 必须逐步检查 chunk actions 是否全部合法。
+      任何无法从 source 完整执行的 chunk 都不得进入 token set，也不得参与归一化。
+    </p>
+
+    <h3>7.3 Landmark Kernel</h3>
+    <pre><code>L = set(representation.landmarks)
+U = set(task.states) - L
+for source in task.states:
+    row = zeros(len(task.states))
+    for target in task.states:
+        if source in L and target in L:
+            p = representation.p_ll[source][target]
+            block = "LL"
+        elif source in L and target in U:
+            p = representation.p_lu[source][target]
+            block = "LU"
+        elif source in U and target in L:
+            p = representation.p_ul[source][target]
+            block = "UL"
+        else:
+            p = 0.0
+            block = null
+        row[target_index[target]] = p
+        if p &gt; epsilon:
+            support[(source, target)].append(cpd_support(block, source, target, p))
+    assert_normalized(row)
+return TransitionKernel(matrix), KernelSupport(support)</code></pre>
+    <p>self-transition 由 CPD 决定。若 CPD 给出正概率，就创建对应 cognitive edge。</p>
+
+    <h3>7.4 Cognitive Graph 与 Cost</h3>
+    <pre><code>for source in states:
+    for target in states:
+        p = kernel[source, target]
+        if p &gt; probability_epsilon:
+            cost = -log(p)
+            add_edge(source, target, probability=p, cost=cost)
+        else:
+            no edge</code></pre>
+    <p><code>probability_epsilon</code> 只用于浮点噪声过滤。输入校验仍要求概率非负且行和在容差内等于 1。</p>
+
+    <h3>7.5 Directed Distance</h3>
+    <p>小规模任务默认使用 Floyd-Warshall，语义简单且便于测试。</p>
+    <pre><code>dist = inf_matrix(n, n)
+for s in states:
+    dist[s, s] = 0
+for edge in graph.edges:
+    dist[edge.source, edge.target] = min(existing, edge.cost)
+for k in states:
+    for i in states:
+        for j in states:
+            dist[i, j] = min(dist[i, j], dist[i, k] + dist[k, j])</code></pre>
+    <p>输出必须记录所有不可达 pair。对称化前不把 <code>inf</code> 替换成任意常数。</p>
+
+    <h3>7.6 Classical MDS</h3>
+    <pre><code>assert all finite(D)
+D2 = D ** 2
+J = I - ones(n, n) / n
+B = -0.5 * J @ D2 @ J
+eigenvalues, eigenvectors = eigh(B)
+take top dim eigenvalues in descending order
+positive = maximum(eigenvalues, 0)
+coordinates = eigenvectors[:, top] * sqrt(positive[top])</code></pre>
+    <p>
+      如果最大特征值包含轻微负值，按数值容差截断为 0；
+      如果输入矩阵不对称、对角线不为 0 或包含非有限值，返回 <code>EmbeddingError</code>。
+    </p>
+
+    <h3>7.7 A* 搜索</h3>
+    <pre><code>open_heap.push((f(start), h(start), 0.0, state_order[start], push_seq, start))
+best_g[start] = 0
+while open_heap:
+    _, _, g, _, _, state = open_heap.pop()
+    if stale_entry(state, g):
+        continue
+    if state == goal:
+        return reconstruct_path(state)
+    for next_state in graph.successors[state]:
+        new_g = best_g[state] + graph.cost(state, next_state)
+        if new_g &lt; best_g.get(next_state, inf) - tolerance:
+            update predecessor
+            push with key (new_g + h(next_state), h(next_state), new_g, state_order[next_state], push_seq, next_state)
+return no_path</code></pre>
+    <p>
+      tie-breaking 固定为 <code>(f, h, g, state_order, push_seq)</code>。
+      若同一节点出现数值相等的候选路径，保留先进入的 predecessor，保证结果可复现。
+    </p>
+
+    <h3>7.8 Edge Expansion</h3>
+    <h4>Primitive</h4>
+    <pre><code>candidates = [a for a in legal_actions(s) if T(s, a) == s_next]
+probs = normalize([w_p(a | s) for a in candidates])
+sampled = rng.choice(candidates, probs)
+trace = actions=[sampled], states=[s, s_next]</code></pre>
+
+    <h4>Chunk</h4>
+    <pre><code>candidates = [token for token in tokens_at(s) if execute_token(s, token).endpoint == s_next]
+probs = normalize([w_g(token | s) for token in candidates])
+sampled = rng.choice(candidates, probs)
+trace = execute_token(s, sampled)</code></pre>
+
+    <h4>Landmark</h4>
+    <pre><code>paths = task.all_shortest_paths(s, s_next, limit=config.max_landmark_shortest_paths)
+if paths is empty:
+    raise ExpansionError
+sampled = rng.choice(paths, uniform)
+trace = sampled</code></pre>
+    <p>
+      对 <code>s == s_next</code>，primitive shortest path 是零长度 path，展开为空 action sequence；
+      这与 CPD self-transition 的语义保持一致。
+    </p>
+
+    <h4>提前终止</h4>
+    <pre><code>for edge_index, edge in enumerate(cognitive_edges):
+    trace = expand(edge)
+    append trace step by step
+    if any appended state == goal:
+        record termination(edge_index, primitive_step_index)
+        stop expansion</code></pre>
+  </section>
+
+  <section id="pipeline">
+    <h2>8. Agent 编排</h2>
+
+    <h3>8.1 创建 Agent</h3>
+    <pre><code>agent = CognitiveNavigationAgent(
+    representation=representation,
+    config=planning_config,
+)</code></pre>
+    <p>
+      Agent 绑定一种认知表征和一份运行配置，不拥有任务环境。
+      调用方在构建 artifact、搜索或运行 trial 时传入 <code>TaskGraph</code>；
+      agent 负责把 kernel、cognitive graph、distance、embedding、A* 和 expansion 串接起来。
+    </p>
+
+    <h3>8.2 build_artifacts</h3>
+    <pre><code>def CognitiveNavigationAgent.build_artifacts(task, force=False):
+    if self.cached_artifacts is not None and self.cached_task_id == task.task_id and not force:
+        return self.cached_artifacts
+    validate_task_graph(task, self.config)
+    validate_representation(task, self.representation, self.config)
+    kernel, kernel_support = build_transition_kernel(task, self.representation, self.config)
+    validate_kernel(kernel, self.config)
+    graph = build_cognitive_graph(kernel, self.config)
+    directed = compute_directed_distances(graph)
+    symmetric = symmetrize_distances(directed)
+    embedding = compute_classical_mds(symmetric, self.config)
+    artifacts = ModelArtifacts(
+        task_id=task.task_id,
+        representation_id=self.representation.representation_id,
+        family=self.representation.family,
+        transition_kernel=kernel,
+        kernel_support=kernel_support,
+        cognitive_graph=graph,
+        directed_distance=directed,
+        symmetric_distance=symmetric,
+        embedding=embedding,
+    )
+    self.cached_task_id = task.task_id
+    self.cached_artifacts = artifacts
+    return artifacts</code></pre>
+
+    <h3>8.3 plan</h3>
+    <pre><code>def CognitiveNavigationAgent.plan(task, start_state, goal_state):
+    artifacts = self.build_artifacts(task)
+    validate_start_goal(task, artifacts.cognitive_graph, start_state, goal_state)
+    return plan_cognitive_path(
+        artifacts.cognitive_graph,
+        artifacts.embedding,
+        start_state,
+        goal_state,
+        self.config,
+    )</code></pre>
+    <p><code>plan</code> 只返回 cognitive graph 上的 A* 结果，不执行 primitive trajectory expansion。</p>
+
+    <h3>8.4 run_trial</h3>
+    <pre><code>def CognitiveNavigationAgent.run_trial(task, trial):
+    rng = make_rng(self.config, trial)
+    artifacts = self.build_artifacts(task)
+    astar = self.plan(task, trial.start_state, trial.goal_state)
+    if astar.status == "no_path":
+        return no_path_result(...)
+    expansion = expand_cognitive_path(
+        task,
+        self.representation,
+        artifacts.kernel_support,
+        astar.cognitive_path,
+        trial.goal_state,
+        rng,
+        self.config,
+    )
+    return reached_or_expansion_result(...)</code></pre>
+
+    <h3>8.5 run_batch</h3>
+    <p>
+      batch 运行复用同一 task 与同一 agent 组合下的 <code>ModelArtifacts</code>。
+      不同 trial 只执行 start/goal 校验、A* 和 expansion。
+    </p>
+    <pre><code>def CognitiveNavigationAgent.run_batch(task, trials):
+    self.build_artifacts(task)
+    return [self.run_trial(task, trial) for trial in trials]</code></pre>
+  </section>
+
+  <section id="validation">
+    <h2>9. 校验与异常设计</h2>
+
+    <h3>9.1 校验阶段</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>阶段</th>
+          <th>校验内容</th>
+          <th>错误类型</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>TaskGraph</td>
+          <td>状态唯一、动作合法、transition 完整、target 属于状态集合、cost 为正。</td>
+          <td><code>InvalidTaskGraphError</code></td>
+        </tr>
+        <tr>
+          <td>PrimitiveRepresentation</td>
+          <td>权重非负，只覆盖合法 action，合法 action row sum 为 1。</td>
+          <td><code>InvalidPrimitiveRepresentationError</code></td>
+        </tr>
+        <tr>
+          <td>ChunkRepresentation</td>
+          <td>chunk action 属于 action vocabulary；每个 state 的 executable token row sum 为 1。</td>
+          <td><code>InvalidChunkRepresentationError</code></td>
+        </tr>
+        <tr>
+          <td>LandmarkRepresentation</td>
+          <td>landmark 属于状态集合；LL+LU row sum 为 1；UL row sum 为 1；概率非负。</td>
+          <td><code>InvalidLandmarkRepresentationError</code></td>
+        </tr>
+        <tr>
+          <td>TransitionKernel</td>
+          <td>矩阵 shape 正确；每行 row sum 为 1；概率非负。</td>
+          <td><code>InvalidKernelError</code></td>
+        </tr>
+        <tr>
+          <td>KernelSupport</td>
+          <td>support entries 必须能对应到非零 kernel edge；每条 entry 的概率贡献必须非负。</td>
+          <td><code>InvalidKernelError</code></td>
+        </tr>
+        <tr>
+          <td>Distance/MDS</td>
+          <td>对称距离有限、对称、对角线为 0。</td>
+          <td><code>EmbeddingError</code></td>
+        </tr>
+        <tr>
+          <td>Trial</td>
+          <td>start/goal 属于状态集合；goal 在 cognitive graph 中可达。</td>
+          <td><code>PlanningError</code> 或 <code>NoPathResult</code></td>
+        </tr>
+        <tr>
+          <td>Expansion</td>
+          <td>edge 有可采样候选；landmark edge 在 primitive task graph 中可达。</td>
+          <td><code>ExpansionError</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>9.2 异常基类</h3>
+    <pre><code>CognitiveNavigationError
+  InvalidInputError
+    InvalidTaskGraphError
+    InvalidRepresentationError
+      InvalidPrimitiveRepresentationError
+      InvalidChunkRepresentationError
+      InvalidLandmarkRepresentationError
+    InvalidTrialSpecError
+  InvalidKernelError
+  EmbeddingError
+  PlanningError
+  ExpansionError
+  SerializationError</code></pre>
+
+    <h3>9.3 错误详情</h3>
+    <pre><code>ErrorDetail:
+  code: str
+  message: str
+  stage: "validation" | "kernel" | "graph" | "distance" | "embedding" | "planning" | "expansion" | "serialization"
+  object_id: str | null
+  context: dict[str, json_value]</code></pre>
+    <p>所有高层入口捕获 <code>CognitiveNavigationError</code> 后，应写入 <code>RunResult.error</code>。</p>
+  </section>
+
+  <section id="serialization">
+    <h2>10. 序列化与可追溯性</h2>
+    <p>序列化输出采用稳定 JSON/dict schema。浮点数保留原始数值，不在序列化层做格式化四舍五入。</p>
+    <pre><code>{
+  "schema_version": 1,
+  "task_id": "grid-9",
+  "representation_id": "repr-001",
+  "family": "chunk",
+  "config": {
+    "alpha": 0.0,
+    "tie_breaking": "deterministic_state_order",
+    "probability_epsilon": 1e-12,
+    "row_sum_tolerance": 1e-9
+  },
+  "model_artifacts": {
+    "transition_kernel": {
+      "states": [1, 2, 3],
+      "matrix": [[...]]
+    },
+    "kernel_support": {
+      "entries_by_edge": {
+        "1->3": [...]
+      }
+    },
+    "cognitive_graph": {
+      "edges": [...]
+    },
+    "directed_distance": {...},
+    "symmetric_distance": {...},
+    "embedding": {...}
+  },
+  "trials": [
+    {
+      "trial_id": "trial-001",
+      "status": "reached_goal",
+      "cognitive_path": [1, 3],
+      "astar": {...},
+      "edge_expansions": [...],
+      "actions": ["right", "right"],
+      "states": [1, 2, 3],
+      "termination": {
+        "reason": "goal_reached",
+        "edge_index": 0,
+        "primitive_step_index": 1
+      }
+    }
+  ]
+}</code></pre>
+
+    <h3>10.1 Trace 要求</h3>
+    <ul>
+      <li>每个 nonzero kernel edge 必须能反查 support entries。</li>
+      <li>每个 cognitive edge 必须能反查 probability 和 <code>-log(P)</code> cost。</li>
+      <li>每次 expansion 必须记录 candidates、candidate probabilities、sampled index 和 sampled item。</li>
+      <li>每个随机结果必须能通过 seed、候选顺序和采样概率复现。</li>
+      <li>每个失败结果必须记录 stage、错误码、错误消息和关键上下文。</li>
+    </ul>
+
+    <h3>10.2 Candidate 顺序</h3>
+    <p>为保证采样可复现，候选顺序必须稳定：</p>
+    <ul>
+      <li>primitive action candidates 按 <code>TaskGraph.actions</code> 顺序。</li>
+      <li>chunk candidates 先列 primitive tokens，再列 chunk tokens；chunk tokens 按 <code>chunk_inventory</code> 的稳定顺序。</li>
+      <li>landmark shortest paths 按状态序列和动作序列的字典序排序后再采样。</li>
+    </ul>
+  </section>
+
+  <section id="config">
+    <h2>11. 配置与随机性</h2>
+
+    <h3>11.1 配置对象</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>字段</th>
+          <th>默认值</th>
+          <th>含义</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>alpha</code></td>
+          <td><code>0.0</code></td>
+          <td>A* embedding heuristic scale。0 表示 zero heuristic。</td>
+        </tr>
+        <tr>
+          <td><code>probability_epsilon</code></td>
+          <td><code>1e-12</code></td>
+          <td>判断 kernel edge 是否存在的浮点阈值。</td>
+        </tr>
+        <tr>
+          <td><code>row_sum_tolerance</code></td>
+          <td><code>1e-9</code></td>
+          <td>概率行和校验容差。</td>
+        </tr>
+        <tr>
+          <td><code>distance_tolerance</code></td>
+          <td><code>1e-9</code></td>
+          <td>distance 对称性、对角线和数值比较容差。</td>
+        </tr>
+        <tr>
+          <td><code>max_landmark_shortest_paths</code></td>
+          <td><code>10000</code></td>
+          <td>landmark expansion 枚举 shortest paths 的上限。</td>
+        </tr>
+        <tr>
+          <td><code>tie_breaking</code></td>
+          <td><code>deterministic_state_order</code></td>
+          <td>A* tie-breaking 策略。</td>
+        </tr>
+        <tr>
+          <td><code>mds_dim</code></td>
+          <td><code>2</code></td>
+          <td>classical MDS 输出维度，当前需求为 2。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>11.2 RNG 策略</h3>
+    <ul>
+      <li>高层入口创建一个 <code>RandomContext</code>，所有 expansion 采样都通过它完成。</li>
+      <li>若 <code>TrialSpec.random_seed</code> 存在，则优先使用 trial seed。</li>
+      <li>若 trial seed 不存在，则使用 run config seed；若二者都不存在，结果仍可运行但 metadata 必须记录 <code>seed=null</code>。</li>
+      <li>RNG 对象不应在模块内部隐式创建。</li>
+    </ul>
+  </section>
+
+  <section id="quality">
+    <h2>12. 质量属性</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>属性</th>
+          <th>设计措施</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>正确性</td>
+          <td>每个数学对象对应一个显式数据模型；每个公式对应单独函数和测试入口。</td>
+        </tr>
+        <tr>
+          <td>可测试性</td>
+          <td>kernel、graph、distance、MDS、A*、expansion 均可用固定小图独立测试。</td>
+        </tr>
+        <tr>
+          <td>可复现性</td>
+          <td>稳定状态顺序、稳定候选顺序、显式 RNG、确定性 tie-breaking。</td>
+        </tr>
+        <tr>
+          <td>可审计性</td>
+          <td>RunResult 保存完整中间 artifact 和 trace，不只保存最终 actions/states。</td>
+        </tr>
+        <tr>
+          <td>可维护性</td>
+          <td>family-specific 逻辑只在 representation、kernel builder、expander 中出现。</td>
+        </tr>
+        <tr>
+          <td>数值稳定性</td>
+          <td>统一容差配置；禁止对 <code>inf</code> distance 做静默替换；MDS 前显式检查。</td>
+        </tr>
+        <tr>
+          <td>性能</td>
+          <td>面向小规模研究图采用矩阵和清晰图算法；路径枚举设置上限。</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="implementation">
+    <h2>13. 实现顺序</h2>
+    <ol>
+      <li>实现 <code>types.py</code> 中的数据模型、枚举、配置、错误类型和基础序列化 helper。</li>
+      <li>实现 <code>TaskGraph</code>、<code>TaskGraph.from_transitions</code>、token execution、primitive shortest distance 和 shortest paths 枚举。</li>
+      <li>实现三类 representation、<code>RepresentationBuilder</code> 与兼容性校验逻辑。</li>
+      <li>实现三类 kernel builder，输出 <code>TransitionKernel</code> 与 <code>KernelSupport</code>。</li>
+      <li>在 <code>cognitive_graph.py</code> 中实现 cognitive graph、cost、directed distance、symmetric distance 和 classical MDS。</li>
+      <li>在 <code>planning.py</code> 中实现 A* 搜索、三类 edge expansion 与提前终止规则。</li>
+      <li>实现 <code>agent.py</code> 中的 <code>CognitiveNavigationAgent</code>、artifact 缓存、<code>run_trial</code> 和 <code>run_batch</code>。</li>
+      <li>补齐 JSON/dict 输出、golden case 和端到端验收测试。</li>
+    </ol>
+  </section>
+
+  <section id="traceability">
+    <h2>14. 需求追踪矩阵</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>需求</th>
+          <th>设计位置</th>
+          <th>核心对象/函数</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>FR-1 TaskGraph</td>
+          <td>5.2、6.1、7.8</td>
+          <td><code>TaskGraph</code>、<code>from_transitions</code>、<code>execute_token</code>、<code>all_shortest_paths</code></td>
+        </tr>
+        <tr>
+          <td>FR-2 Representation</td>
+          <td>5.3、6.3</td>
+          <td><code>PrimitiveRepresentation</code>、<code>ChunkRepresentation</code>、<code>LandmarkRepresentation</code>、<code>RepresentationBuilder</code></td>
+        </tr>
+        <tr>
+          <td>FR-3 Transition Kernel</td>
+          <td>5.4、6.4、7.1-7.3</td>
+          <td><code>build_transition_kernel</code>、<code>TransitionKernel</code>、<code>KernelSupport</code></td>
+        </tr>
+        <tr>
+          <td>FR-4 Cognitive Graph 与 Cost</td>
+          <td>5.5、6.5、7.4</td>
+          <td><code>CognitiveGraph</code>、<code>CognitiveEdge</code></td>
+        </tr>
+        <tr>
+          <td>FR-5 Distance 与 MDS</td>
+          <td>5.5、6.6、7.5-7.6</td>
+          <td><code>DirectedDistance</code>、<code>SymmetricDistance</code>、<code>Embedding</code></td>
+        </tr>
+        <tr>
+          <td>FR-6 A*</td>
+          <td>5.6、6.9、7.7</td>
+          <td><code>plan_cognitive_path</code>、<code>AStarResult</code></td>
+        </tr>
+        <tr>
+          <td>FR-7 Edge Expansion</td>
+          <td>5.6、6.9、7.8</td>
+          <td><code>expand_cognitive_path</code>、<code>ExpansionTrace</code></td>
+        </tr>
+        <tr>
+          <td>数据与可追溯性</td>
+          <td>6.4-6.10、10</td>
+          <td><code>RunResult</code>、<code>ModelArtifacts</code>、JSON schema</td>
+        </tr>
+        <tr>
+          <td>端到端运行入口</td>
+          <td>5.7、6.10、8</td>
+          <td><code>CognitiveNavigationAgent</code>、<code>build_artifacts</code>、<code>run_trial</code>、<code>run_batch</code></td>
+        </tr>
+        <tr>
+          <td>校验与异常</td>
+          <td>9</td>
+          <td><code>types.py</code>、<code>representations.py</code>、<code>kernel.py</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="decisions">
+    <h2>15. 设计决策</h2>
+
+    <dl class="decision">
+      <dt>决策 1</dt>
+      <dd>A* tie-breaking 使用固定 key：<code>(f, h, g, state_order, push_seq)</code>。状态顺序来自 <code>TaskGraph.states</code>。</dd>
+
+      <dt>理由</dt>
+      <dd>保证在相同输入、相同浮点结果下，搜索路径与 trace 可复现。</dd>
+    </dl>
+
+    <dl class="decision">
+      <dt>决策 2</dt>
+      <dd><code>alpha</code> 是显式配置，默认 <code>0.0</code>，并写入 metadata。</dd>
+
+      <dt>理由</dt>
+      <dd>默认值对应 zero heuristic，保证规划仍按 cognitive graph cost 给出最短路径；需要 embedding heuristic 时由调用方显式指定。</dd>
+    </dl>
+
+    <dl class="decision">
+      <dt>决策 3</dt>
+      <dd>MDS 输入包含非有限 distance 时抛出 <code>EmbeddingError</code>，高层入口返回 <code>embedding_error</code> 状态。</dd>
+
+      <dt>理由</dt>
+      <dd>避免把不可达状态对静默填补成任意距离，保护 embedding 和 heuristic 的数值语义。</dd>
+    </dl>
+
+    <dl class="decision">
+      <dt>决策 4</dt>
+      <dd>landmark self-transition 按 CPD 处理。若 CPD 给出正概率，则 kernel 与 graph 中保留该 edge；expansion 返回零长度 primitive path。</dd>
+
+      <dt>理由</dt>
+      <dd>CPD 是 landmark kernel 的概率来源，软件层不额外修改其语义。</dd>
+    </dl>
+
+    <dl class="decision">
+      <dt>决策 5</dt>
+      <dd>landmark shortest primitive paths 默认全部枚举，受 <code>max_landmark_shortest_paths</code> 限制；超过上限时返回 <code>ExpansionError</code>。</dd>
+
+      <dt>理由</dt>
+      <dd>当前研究任务规模较小，枚举最清晰且能严格实现 uniform sampling；上限用于避免意外爆炸。</dd>
+    </dl>
+
+    <dl class="decision">
+      <dt>决策 6</dt>
+      <dd><code>CognitiveNavigationAgent</code> 作为统一运行载体，持有 representation、config 和最近一次构建的 artifacts；不持有 <code>TaskGraph</code>。<code>TaskGraph</code> 作为外部任务环境传入 <code>build_artifacts</code>、<code>plan</code>、<code>run_trial</code> 和 <code>run_batch</code>。</dd>
+
+      <dt>理由</dt>
+      <dd>调用方需要一个稳定入口来执行完整流程；同时认知主体拥有的是表征而不是环境，算法仍保留在独立模块中，agent 只负责编排、缓存、错误包装和输出组织。</dd>
+    </dl>
+
+    <dl class="decision">
+      <dt>决策 7</dt>
+      <dd>从 task 和显式参数构造 representation 的职责属于 <code>RepresentationBuilder</code>，不属于 <code>CognitiveNavigationAgent</code>。</dd>
+
+      <dt>理由</dt>
+      <dd>同一 task 可以对应多种表征；表征包含模型假设和参数，不是 task 的唯一产物。把构造职责放在 builder 中，可以清晰区分“表征如何被设定”和“agent 如何使用表征执行认知导航”。</dd>
+    </dl>
+
+    <dl class="decision">
+      <dt>决策 8</dt>
+      <dd><code>TaskGraph</code> 内部必须保存 <code>legal_actions</code>、<code>transitions</code> 和 <code>action_costs</code>；用户侧正式输入以 <code>TaskGraph.from_transitions</code> 的嵌套 transition 字典为准，其它字段由构造函数推导。</dd>
+
+      <dt>理由</dt>
+      <dd>当前模型的 token execution、kernel construction、A* edge expansion 和 primitive shortest paths 都依赖确定性转移函数 <code>T(s,a)</code>。直接输入 transitions 最简洁，也能表达 <code>loop</code> 这类非规则网格动作。</dd>
+    </dl>
+  </section>
+</main>
+</body>
+</html>

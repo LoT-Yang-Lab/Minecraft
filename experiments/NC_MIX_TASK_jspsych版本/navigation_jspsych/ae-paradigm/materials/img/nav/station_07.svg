@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="112" height="112" viewBox="0 0 112 112">
+  <title>黄色十字站</title>
+  <defs>
+    <radialGradient id="ncBadge7" cx="34%" cy="30%" r="72%">
+      <stop offset="0%" stop-color="#fbfcff" stop-opacity="1"/>
+      <stop offset="52%" stop-color="#e8ecf4" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#c4cad6" stop-opacity="1"/>
+    </radialGradient>
+  </defs>
+  <circle cx="56" cy="56" r="50" fill="url(#ncBadge7)" stroke="#5a6a82" stroke-width="2"/>
+  <g transform="translate(56,56)">
+    <g fill="#dcc828" stroke="#7a6a12" stroke-width="1.15"><rect x="-3.2" y="-16" width="6.4" height="32" rx="1.2"/><rect x="-16" y="-3.2" width="32" height="6.4" rx="1.2"/></g>
+  </g>
+</svg>

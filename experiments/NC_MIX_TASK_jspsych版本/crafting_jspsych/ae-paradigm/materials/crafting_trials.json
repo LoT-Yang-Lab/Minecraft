@@ -1,0 +1,277 @@
+{
+  "schema": "crafting_web_trials",
+  "source": "crafting/src/proposal5_trial_schedule.py session 2 (seed 20260408+2), rng 42 for recipes",
+  "generator": {
+    "type": "proposal5",
+    "base_seed": 20260408,
+    "session": 2,
+    "trials_per_session": 20,
+    "quotas": {
+      "grid": 8,
+      "loop": 8,
+      "tie": 4
+    }
+  },
+  "trials": [
+    {
+      "trial_id": "S2_craft_01",
+      "order_count": 1,
+      "seed": 2001,
+      "start_state": "stone_06",
+      "order_targets": [
+        "stone_07"
+      ],
+      "status_messages_tail": [],
+      "pair_id": "L07",
+      "category": "loop",
+      "recipe": "forge_sword"
+    },
+    {
+      "trial_id": "S2_craft_02",
+      "order_count": 1,
+      "seed": 2002,
+      "start_state": "stone_05",
+      "order_targets": [
+        "stone_07"
+      ],
+      "status_messages_tail": [],
+      "pair_id": "G07",
+      "category": "grid",
+      "recipe": "smelt_ingot"
+    },
+    {
+      "trial_id": "S2_craft_03",
+      "order_count": 1,
+      "seed": 2003,
+      "start_state": "stone_02",
+      "order_targets": [
+        "stone_07"
+      ],
+      "status_messages_tail": [],
+      "pair_id": "T02",
+      "category": "tie",
+      "recipe": "smelt_ingot"
+    },
+    {
+      "trial_id": "S2_craft_04",
+      "order_count": 1,
+      "seed": 2004,
+      "start_state": "stone_03",
+      "order_targets": [
+        "stone_08"
+      ],
+      "status_messages_tail": [],
+      "pair_id": "L05",
+      "category": "loop",
+      "recipe": "forge_sword"
+    },
+    {
+      "trial_id": "S2_craft_05",
+      "order_count": 1,
+      "seed": 2005,
+      "start_state": "stone_01",
+      "order_targets": [
+        "stone_09"
+      ],
+      "status_messages_tail": [],
+      "pair_id": "L02",
+      "category": "loop",
+      "recipe": "brew_potion"
+    },
+    {
+      "trial_id": "S2_craft_06",
+      "order_count": 1,
+      "seed": 2006,
+      "start_state": "stone_09",
+      "order_targets": [
+        "stone_01"
+      ],
+      "status_messages_tail": [],
+      "pair_id": "L11",
+      "category": "loop",
+      "recipe": "craft_table"
+    },
+    {
+      "trial_id": "S2_craft_07",
+      "order_count": 1,
+      "seed": 2007,
+      "start_state": "stone_01",
+      "order_targets": [
+        "stone_09"
+      ],
+      "status_messages_tail": [],
+      "pair_id": "L02",
+      "category": "loop",
+      "recipe": "craft_table"
+    },
+    {
+      "trial_id": "S2_craft_08",
+      "order_count": 1,
+      "seed": 2008,
+      "start_state": "stone_05",
+      "order_targets": [
+        "stone_03"
+      ],
+      "status_messages_tail": [],
+      "pair_id": "G06",
+      "category": "grid",
+      "recipe": "craft_table"
+    },
+    {
+      "trial_id": "S2_craft_09",
+      "order_count": 1,
+      "seed": 2009,
+      "start_state": "stone_05",
+      "order_targets": [
+        "stone_07"
+      ],
+      "status_messages_tail": [],
+      "pair_id": "G07",
+      "category": "grid",
+      "recipe": "forge_sword"
+    },
+    {
+      "trial_id": "S2_craft_10",
+      "order_count": 1,
+      "seed": 2010,
+      "start_state": "stone_06",
+      "order_targets": [
+        "stone_01"
+      ],
+      "status_messages_tail": [],
+      "pair_id": "T05",
+      "category": "tie",
+      "recipe": "smelt_ingot"
+    },
+    {
+      "trial_id": "S2_craft_11",
+      "order_count": 1,
+      "seed": 2011,
+      "start_state": "stone_06",
+      "order_targets": [
+        "stone_08"
+      ],
+      "status_messages_tail": [],
+      "pair_id": "G09",
+      "category": "grid",
+      "recipe": "forge_sword"
+    },
+    {
+      "trial_id": "S2_craft_12",
+      "order_count": 1,
+      "seed": 2012,
+      "start_state": "stone_09",
+      "order_targets": [
+        "stone_04"
+      ],
+      "status_messages_tail": [],
+      "pair_id": "L12",
+      "category": "loop",
+      "recipe": "forge_sword"
+    },
+    {
+      "trial_id": "S2_craft_13",
+      "order_count": 1,
+      "seed": 2013,
+      "start_state": "stone_03",
+      "order_targets": [
+        "stone_04"
+      ],
+      "status_messages_tail": [],
+      "pair_id": "T03",
+      "category": "tie",
+      "recipe": "cook_stew"
+    },
+    {
+      "trial_id": "S2_craft_14",
+      "order_count": 1,
+      "seed": 2014,
+      "start_state": "stone_03",
+      "order_targets": [
+        "stone_08"
+      ],
+      "status_messages_tail": [],
+      "pair_id": "L05",
+      "category": "loop",
+      "recipe": "smelt_ingot"
+    },
+    {
+      "trial_id": "S2_craft_15",
+      "order_count": 1,
+      "seed": 2015,
+      "start_state": "stone_04",
+      "order_targets": [
+        "stone_02"
+      ],
+      "status_messages_tail": [],
+      "pair_id": "G04",
+      "category": "grid",
+      "recipe": "cook_stew"
+    },
+    {
+      "trial_id": "S2_craft_16",
+      "order_count": 1,
+      "seed": 2016,
+      "start_state": "stone_07",
+      "order_targets": [
+        "stone_05"
+      ],
+      "status_messages_tail": [],
+      "pair_id": "G10",
+      "category": "grid",
+      "recipe": "assemble_cart"
+    },
+    {
+      "trial_id": "S2_craft_17",
+      "order_count": 1,
+      "seed": 2017,
+      "start_state": "stone_02",
+      "order_targets": [
+        "stone_07"
+      ],
+      "status_messages_tail": [],
+      "pair_id": "T02",
+      "category": "tie",
+      "recipe": "smelt_ingot"
+    },
+    {
+      "trial_id": "S2_craft_18",
+      "order_count": 1,
+      "seed": 2018,
+      "start_state": "stone_05",
+      "order_targets": [
+        "stone_03"
+      ],
+      "status_messages_tail": [],
+      "pair_id": "G06",
+      "category": "grid",
+      "recipe": "smelt_ingot"
+    },
+    {
+      "trial_id": "S2_craft_19",
+      "order_count": 1,
+      "seed": 2019,
+      "start_state": "stone_07",
+      "order_targets": [
+        "stone_03"
+      ],
+      "status_messages_tail": [],
+      "pair_id": "L09",
+      "category": "loop",
+      "recipe": "smelt_ingot"
+    },
+    {
+      "trial_id": "S2_craft_20",
+      "order_count": 1,
+      "seed": 2020,
+      "start_state": "stone_09",
+      "order_targets": [
+        "stone_05"
+      ],
+      "status_messages_tail": [],
+      "pair_id": "G12",
+      "category": "grid",
+      "recipe": "craft_table"
+    }
+  ]
+}

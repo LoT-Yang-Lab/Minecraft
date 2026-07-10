@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="112" height="112" viewBox="0 0 112 112">
+  <title>蓝色正方形站</title>
+  <defs>
+    <radialGradient id="ncRom2" cx="34%" cy="30%" r="72%">
+      <stop offset="0%" stop-color="#fbfcff" stop-opacity="1"/>
+      <stop offset="52%" stop-color="#e8ecf4" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#c4cad6" stop-opacity="1"/>
+    </radialGradient>
+  </defs>
+  <circle cx="56" cy="56" r="50" fill="url(#ncRom2)" stroke="#5a6a82" stroke-width="2"/>
+  <g transform="translate(56,56)">
+    <rect x="-12.5" y="-12.5" width="25" height="25" rx="1.8" fill="#3c78e6" stroke="#1a3d75" stroke-width="1.15"/>
+  </g>
+</svg>

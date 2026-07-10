@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="112" height="112" viewBox="0 0 112 112">
+  <title>红色三角形站</title>
+  <defs>
+    <radialGradient id="ncBadge1" cx="34%" cy="30%" r="72%">
+      <stop offset="0%" stop-color="#fbfcff" stop-opacity="1"/>
+      <stop offset="52%" stop-color="#e8ecf4" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#c4cad6" stop-opacity="1"/>
+    </radialGradient>
+  </defs>
+  <circle cx="56" cy="56" r="50" fill="url(#ncBadge1)" stroke="#5a6a82" stroke-width="2"/>
+  <g transform="translate(56,56)">
+    <polygon points="0,-18.2 -15.8,15.8 15.8,15.8" fill="#e63c3c" stroke="#7a2424" stroke-width="1.15" stroke-linejoin="round"/>
+  </g>
+</svg>

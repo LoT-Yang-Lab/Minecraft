@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>导航表征统一框架需求分析说明</title>
+  <style>
+    :root {
+      --text: #111111;
+      --muted: #555555;
+      --border: #d9d9d9;
+      --soft: #f7f7f7;
+      --accent: #1f5f99;
+      --accent-soft: #eef6fc;
+      --warn: #8a5a00;
+      --warn-soft: #fff8e6;
+      --ok: #1c6b3a;
+      --ok-soft: #eef8f1;
+      --code: #f2f2f2;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #ffffff;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.72;
+      font-size: 16px;
+    }
+
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 40px 28px 80px;
+    }
+
+    header {
+      border-bottom: 2px solid var(--text);
+      padding-bottom: 22px;
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      font-size: 32px;
+      line-height: 1.25;
+      margin: 0 0 10px;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      font-size: 24px;
+      margin: 42px 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: 0;
+    }
+
+    h3 {
+      font-size: 19px;
+      margin: 28px 0 10px;
+      letter-spacing: 0;
+    }
+
+    h4 {
+      font-size: 17px;
+      margin: 20px 0 8px;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 10px 0;
+    }
+
+    ul,
+    ol {
+      padding-left: 24px;
+      margin: 10px 0 16px;
+    }
+
+    li {
+      margin: 6px 0;
+    }
+
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      background: var(--code);
+      border: 1px solid #e4e4e4;
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: #111111;
+    }
+
+    pre {
+      overflow-x: auto;
+      margin: 14px 0 20px;
+      padding: 14px 16px;
+      background: var(--code);
+      border: 1px solid #e4e4e4;
+      border-radius: 6px;
+      line-height: 1.55;
+    }
+
+    pre code {
+      background: transparent;
+      border: 0;
+      padding: 0;
+      border-radius: 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 22px;
+      font-size: 15px;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: var(--soft);
+      font-weight: 700;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .lead {
+      font-size: 18px;
+      max-width: 980px;
+      margin-top: 16px;
+    }
+
+    .math-inline {
+      font-family: "Times New Roman", "Noto Serif CJK SC", serif;
+      font-style: italic;
+      white-space: nowrap;
+    }
+
+    .equation {
+      overflow-x: auto;
+      margin: 14px 0;
+      padding: 12px 14px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: "Times New Roman", "Noto Serif CJK SC", serif;
+      text-align: center;
+      font-size: 18px;
+      line-height: 1.6;
+    }
+
+    .box {
+      border: 1px solid var(--border);
+      background: var(--soft);
+      padding: 14px 16px;
+      border-radius: 8px;
+      margin: 16px 0;
+    }
+
+    .box.accent {
+      background: var(--accent-soft);
+      border-color: #b6d7ef;
+    }
+
+    .box.warn {
+      background: var(--warn-soft);
+      border-color: #ead89e;
+    }
+
+    .box.ok {
+      background: var(--ok-soft);
+      border-color: #b8dfc5;
+    }
+
+    .toc {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+      gap: 8px 18px;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .toc a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .toc a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 720px) {
+      main {
+        padding: 28px 18px 56px;
+      }
+
+      h1 {
+        font-size: 27px;
+      }
+
+      h2 {
+        font-size: 22px;
+      }
+
+      table {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>导航表征统一框架需求分析说明</h1>
+    <div class="meta">基线文档：<code>docs/开发文档/generative_model_macro_framework_cn.html</code></div>
+    <p class="lead">
+      本文档基于当前宏观数学框架，定义软件系统需要支持的对象、功能、数据、校验规则、
+      输出结果和验收边界。当前需求的核心是 kernel-first：所有表征先转换为统一的状态转移核，
+      再共享 cognitive graph、directed distance、MDS embedding、A* 搜索和 edge expansion 流程。
+    </p>
+  </header>
+
+  <nav class="toc" aria-label="目录">
+    <a href="#purpose">1. 文档目的</a>
+    <a href="#baseline">2. 需求基线与核心变化</a>
+    <a href="#scope">3. 范围与非范围</a>
+    <a href="#users">4. 用户与使用场景</a>
+    <a href="#terms">5. 术语与对象</a>
+    <a href="#pipeline">6. 总体业务流程</a>
+    <a href="#functional">7. 功能需求</a>
+    <a href="#data">8. 数据需求</a>
+    <a href="#validation">9. 校验与异常需求</a>
+    <a href="#output">10. 输出与可追溯性</a>
+    <a href="#nonfunctional">11. 非功能需求</a>
+    <a href="#acceptance">12. 验收标准</a>
+    <a href="#open">13. 待决问题</a>
+  </nav>
+
+  <section id="purpose">
+    <h2>1. 文档目的</h2>
+    <p>
+      本文档用于在进入软件设计和实现前，明确当前统一框架在软件层面的需求。
+      它描述“系统必须做什么”，不规定具体代码结构、类名、算法优化策略或文件组织。
+    </p>
+    <p>本文档的输出对象包括：</p>
+    <ul>
+      <li>核心功能需求：从任务与表征生成 transition kernel，并进一步生成认知图、距离、地图和 A* path。</li>
+      <li>三类表征需求：primitive、action-chunk、landmark-state。</li>
+      <li>执行展开需求：把 cognitive edge 转换为实际 primitive trajectory。</li>
+      <li>数据与结果需求：中间对象和最终输出必须可审计、可序列化、可测试。</li>
+      <li>边界需求：当前数学框架已定义的内容、尚未定义的内容，以及进入软件设计前需要明确的问题。</li>
+    </ul>
+  </section>
+
+  <section id="baseline">
+    <h2>2. 需求基线与核心链条</h2>
+    <p>当前数学框架的主链条为：</p>
+    <div class="equation">
+      (K<sub>0</sub>, R<sub>M</sub>)
+      &rarr;
+      P<sub>M</sub>(s' | s)
+      &rarr;
+      c<sub>M</sub>(s,s')
+      &rarr;
+      d<sub>M</sub><sup>&rarr;</sup>(s,t)
+      &rarr;
+      D<sub>M</sub>(s,t)
+      &rarr;
+      &psi;<sub>M</sub>(s)
+      &rarr;
+      A*
+      &rarr;
+      edge expansion
+    </div>
+    <div class="box accent">
+      当前框架的统一接口是 <strong>row-stochastic transition kernel</strong>。
+      表征类型差异体现在 <span class="math-inline">R<sub>M</sub> &rarr; P<sub>M</sub></span>；
+      一旦得到 <span class="math-inline">P<sub>M</sub></span>，后续 cost、distance、MDS、A* 和路径展开共享同一套流程。
+    </div>
+  </section>
+
+  <section id="scope">
+    <h2>3. 范围与非范围</h2>
+
+    <h3>3.1 当前版本范围内</h3>
+    <ul>
+      <li>定义 deterministic primitive navigation task graph。</li>
+      <li>定义 primitive、action-chunk、landmark-state 三类静态表征。</li>
+      <li>从每类表征构造 row-stochastic transition kernel。</li>
+      <li>从 transition kernel 构造 directed cognitive graph 和 surprisal edge cost。</li>
+      <li>计算 directed shortest distance。</li>
+      <li>对称化 directed distance，得到 MDS 输入矩阵。</li>
+      <li>执行 classical MDS，得到二维 cognitive map embedding。</li>
+      <li>在 cognitive graph 上执行 A* 搜索。</li>
+      <li>把 A* 输出的 cognitive path 展开为 primitive action / state trajectory。</li>
+      <li>输出完整中间结果和最终轨迹，支持后续分析与测试。</li>
+    </ul>
+
+    <h3>3.2 当前版本范围外</h3>
+    <ul>
+      <li>表征学习、参数拟合和模型反推流程不属于本文档定义的正向 pipeline。</li>
+      <li>landmark region membership 不属于当前 landmark-state 表征定义；当前 landmark 是具体 state set。</li>
+      <li>stochastic environment transition 不属于当前任务定义；任务转移函数 <code>T(s,a)</code> 是确定性的。</li>
+      <li>交互式可视化 UI 不属于当前需求；MDS embedding 只要求作为数据 artifact 输出。</li>
+      <li>二维 embedding 不是搜索图；A* 搜索始终在 cognitive transition graph 上进行。</li>
+    </ul>
+  </section>
+
+  <section id="users">
+    <h2>4. 用户与使用场景</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>角色</th>
+          <th>需求</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>研究者</td>
+          <td>比较不同导航表征诱导出的 transition kernel、认知距离、地图和规划路径。</td>
+        </tr>
+        <tr>
+          <td>模型开发者</td>
+          <td>实现和验证从表征到 kernel，再到 A* path 和展开轨迹的完整流程。</td>
+        </tr>
+        <tr>
+          <td>测试维护者</td>
+          <td>使用固定小图和 golden case 验证 kernel、cost、distance、A*、edge expansion 是否符合数学定义。</td>
+        </tr>
+        <tr>
+          <td>后续推断模块开发者</td>
+          <td>读取完整中间数据，用于未来 likelihood、模型比较或反推表征。</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="terms">
+    <h2>5. 术语与对象</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>术语</th>
+          <th>含义</th>
+          <th>软件需求含义</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="math-inline">K<sub>0</sub></span></td>
+          <td>primitive task graph。</td>
+          <td>输入任务对象，包含状态、action vocabulary、合法动作、确定性转移和 primitive cost。</td>
+        </tr>
+        <tr>
+          <td><span class="math-inline">R<sub>M</sub></span></td>
+          <td>family <span class="math-inline">M</span> 的静态表征。</td>
+          <td>输入表征对象；必须能构造 <span class="math-inline">P<sub>M</sub></span>。</td>
+        </tr>
+        <tr>
+          <td><span class="math-inline">P<sub>M</sub>(s'|s)</span></td>
+          <td>由表征诱导的状态转移核。</td>
+          <td>核心统一接口；每一行必须归一化。</td>
+        </tr>
+        <tr>
+          <td><span class="math-inline">c<sub>M</sub>(s,s')</span></td>
+          <td>有向边 cost，等于 <span class="math-inline">-log P<sub>M</sub>(s'|s)</span>。</td>
+          <td>cognitive graph 上的 A* edge cost。</td>
+        </tr>
+        <tr>
+          <td><span class="math-inline">d<sub>M</sub><sup>&rarr;</sup></span></td>
+          <td>在 directed cost graph 上的最短距离。</td>
+          <td>用于构造对称距离和分析表征几何。</td>
+        </tr>
+        <tr>
+          <td><span class="math-inline">D<sub>M</sub></span></td>
+          <td>对称化距离矩阵。</td>
+          <td>MDS 输入。</td>
+        </tr>
+        <tr>
+          <td><span class="math-inline">&psi;<sub>M</sub></span></td>
+          <td>二维 cognitive map embedding。</td>
+          <td>用于可视化和 A* heuristic，不是搜索图。</td>
+        </tr>
+        <tr>
+          <td>cognitive path</td>
+          <td>A* 在 cognitive graph 上输出的状态序列。</td>
+          <td>需要进一步展开为 primitive trajectory。</td>
+        </tr>
+        <tr>
+          <td>edge expansion</td>
+          <td>把 cognitive edge 展开成 primitive action / state sequence。</td>
+          <td>family-specific 的执行阶段。</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="pipeline">
+    <h2>6. 总体业务流程</h2>
+    <ol>
+      <li>加载并校验 primitive task graph <span class="math-inline">K<sub>0</sub></span>。</li>
+      <li>加载并校验 family-specific representation <span class="math-inline">R<sub>M</sub></span>。</li>
+      <li>根据 family 构造 transition kernel <span class="math-inline">P<sub>M</sub></span>。</li>
+      <li>从 <span class="math-inline">P<sub>M</sub></span> 构造 cognitive graph：边集合和 <span class="math-inline">-log P</span> cost。</li>
+      <li>计算 directed shortest distance <span class="math-inline">d<sub>M</sub><sup>&rarr;</sup></span>。</li>
+      <li>对称化得到 <span class="math-inline">D<sub>M</sub></span>，并执行 MDS 得到 <span class="math-inline">&psi;<sub>M</sub></span>。</li>
+      <li>对给定 trial 的起点和目标，在 cognitive graph 上执行 A*。</li>
+      <li>将 A* 输出的 cognitive path 逐 edge 展开为 primitive trajectory。</li>
+      <li>如果展开过程中提前到达 trial goal，立即终止后续展开。</li>
+      <li>输出 observed trajectory、cognitive path 和所有中间对象。</li>
+    </ol>
+  </section>
+
+  <section id="functional">
+    <h2>7. 功能需求</h2>
+
+    <h3>FR-1 TaskGraph 需求</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>需求</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>FR-1.1</td>
+          <td>系统必须表示有限状态集合 <span class="math-inline">S</span>。</td>
+        </tr>
+        <tr>
+          <td>FR-1.2</td>
+          <td>系统必须表示 primitive action vocabulary <span class="math-inline">A</span>。</td>
+        </tr>
+        <tr>
+          <td>FR-1.3</td>
+          <td>系统必须表示每个状态下的合法 action 集合 <span class="math-inline">A(s)</span>。</td>
+        </tr>
+        <tr>
+          <td>FR-1.4</td>
+          <td>系统必须提供确定性转移函数 <span class="math-inline">T(s,a)</span>，仅对合法 action 定义。</td>
+        </tr>
+        <tr>
+          <td>FR-1.5</td>
+          <td>系统必须支持 primitive action cost <span class="math-inline">&kappa;(s,a)&gt;0</span>。</td>
+        </tr>
+        <tr>
+          <td>FR-1.6</td>
+          <td>系统必须能计算 primitive shortest-path distance <span class="math-inline">d*(s,t)</span>，供 landmark edge expansion 使用。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>FR-2 Representation 需求</h3>
+
+    <h4>FR-2P Primitive representation</h4>
+    <ul>
+      <li>FR-2P.1：系统必须支持 <span class="math-inline">R<sub>P</sub>=(A,w<sub>P</sub>)</span>。</li>
+      <li>FR-2P.2：<span class="math-inline">w<sub>P</sub>(a|s)</span> 只对 <span class="math-inline">a in A(s)</span> 参与归一化。</li>
+      <li>FR-2P.3：对每个状态 <span class="math-inline">s</span>，合法 action 的权重和必须为 1。</li>
+    </ul>
+
+    <h4>FR-2C Action-chunk representation</h4>
+    <ul>
+      <li>FR-2C.1：系统必须支持 chunk inventory <span class="math-inline">G</span>，每个 chunk 是 primitive action 序列。</li>
+      <li>FR-2C.2：系统必须能为每个状态计算可完整合法执行的 chunk 集合 <span class="math-inline">G(s)</span>。</li>
+      <li>FR-2C.3：系统必须定义 token set <span class="math-inline">T<sub>G</sub>(s)=A(s) union G(s)</span>。</li>
+      <li>FR-2C.4：系统必须支持 <span class="math-inline">w<sub>G</sub>(token|s)</span>，并保证在 token set 上归一化。</li>
+      <li>FR-2C.5：系统必须能计算任意可执行 token 的完整执行终点 <span class="math-inline">f(s,token)</span>。</li>
+    </ul>
+
+    <h4>FR-2L Landmark representation</h4>
+    <ul>
+      <li>FR-2L.1：系统必须支持 landmark state set <span class="math-inline">L subset S</span>，且去重后数量至少为 2。</li>
+      <li>FR-2L.2：系统必须定义 non-landmark set <span class="math-inline">U=S\L</span>。</li>
+      <li>FR-2L.3：系统必须支持 CPD block <span class="math-inline">p<sub>LL</sub>(l'|l)</span>。</li>
+      <li>FR-2L.4：系统必须支持 CPD block <span class="math-inline">p<sub>LU</sub>(u|l)</span>。</li>
+      <li>FR-2L.5：系统必须支持 CPD block <span class="math-inline">p<sub>UL</sub>(l|u)</span>。</li>
+      <li>FR-2L.6：每个 landmark source row 中 <span class="math-inline">p<sub>LL</sub></span> 与 <span class="math-inline">p<sub>LU</sub></span> 联合归一化为 1。</li>
+      <li>FR-2L.7：每个 non-landmark source row 中 <span class="math-inline">p<sub>UL</sub></span> 归一化为 1。</li>
+      <li>FR-2L.8：当前版本不允许 non-landmark 到 non-landmark 的直接认知转移；对应 kernel block 为 0。</li>
+    </ul>
+
+    <h3>FR-3 Transition Kernel 需求</h3>
+    <ul>
+      <li>FR-3.1：系统必须为每个 family 构造 <span class="math-inline">P<sub>M</sub>(s'|s)</span>。</li>
+      <li>FR-3.2：每一行 <span class="math-inline">P<sub>M</sub>(.|s)</span> 必须在状态集合 <span class="math-inline">S</span> 上归一化。</li>
+      <li>FR-3.3：primitive kernel 必须按支持同一终点的 action 权重求和。</li>
+      <li>FR-3.4：chunk kernel 必须按支持同一终点的 primitive/chunk token 权重求和。</li>
+      <li>FR-3.5：chunk kernel 构造时只允许使用完整合法执行的 chunk。</li>
+      <li>FR-3.6：landmark kernel 必须通过 CPD blocks 查表拼接，不得从 landmark set 自动推导概率。</li>
+      <li>FR-3.7：系统必须保留 kernel 的 provenance：每个 kernel edge 由哪些 action/token/CPD entry 支持。</li>
+    </ul>
+
+    <h3>FR-4 Cognitive Graph 与 Cost 需求</h3>
+    <ul>
+      <li>FR-4.1：系统必须从 <span class="math-inline">P<sub>M</sub>(s'|s)&gt;0</span> 构造 directed edge set。</li>
+      <li>FR-4.2：系统必须为每条 directed edge 计算 <span class="math-inline">c<sub>M</sub>(s,s')=-log P<sub>M</sub>(s'|s)</span>。</li>
+      <li>FR-4.3：当 <span class="math-inline">P=0</span> 时，不应创建 edge；查询 cost 时可返回 infinity 或明确表示不可达。</li>
+      <li>FR-4.4：系统必须保留 edge probability 和 edge cost，便于调试和测试。</li>
+    </ul>
+
+    <h3>FR-5 Directed Distance 与 MDS 需求</h3>
+    <ul>
+      <li>FR-5.1：系统必须计算 directed shortest distance <span class="math-inline">d<sub>M</sub><sup>&rarr;</sup>(s,t)</span>。</li>
+      <li>FR-5.2：系统必须支持检测 directed unreachable pairs。</li>
+      <li>FR-5.3：系统必须按 <span class="math-inline">D(s,t)=(d(s,t)+d(t,s))/2</span> 构造对称距离。</li>
+      <li>FR-5.4：若对称距离矩阵包含 infinity 或 NaN，系统必须显式报错或返回 partial result；不得静默传入 MDS。</li>
+      <li>FR-5.5：系统必须支持 classical MDS 输出二维 embedding <span class="math-inline">psi(s)</span>。</li>
+    </ul>
+
+    <h3>FR-6 A* 搜索需求</h3>
+    <ul>
+      <li>FR-6.1：系统必须在 cognitive graph 上执行 A*，而不是在 MDS embedding graph 上执行。</li>
+      <li>FR-6.2：A* successor 必须来自 <span class="math-inline">P<sub>M</sub>(s'|s)&gt;0</span> 的 edge set。</li>
+      <li>FR-6.3：A* edge cost 必须使用 <span class="math-inline">-log P</span>。</li>
+      <li>FR-6.4：A* heuristic 必须由 embedding distance 给出：<span class="math-inline">alpha * ||psi(s)-psi(goal)||</span>。</li>
+      <li>FR-6.5：系统必须支持配置或记录 <span class="math-inline">alpha</span>。</li>
+      <li>FR-6.6：系统必须输出 cognitive path、visited/search diagnostics 和最终 path cost。</li>
+      <li>FR-6.7：若 goal 在 cognitive graph 上不可达，系统必须返回明确的 no-path 结果或抛出可识别错误。</li>
+    </ul>
+
+    <h3>FR-7 Cognitive Edge Expansion 需求</h3>
+    <h4>Primitive edge expansion</h4>
+    <ul>
+      <li>FR-7P.1：对 cognitive edge <span class="math-inline">(s,s')</span>，系统必须找到所有满足 <span class="math-inline">T(s,a)=s'</span> 的 action。</li>
+      <li>FR-7P.2：若有多个 action 支持同一 edge，系统必须按条件归一化后的 <span class="math-inline">w<sub>P</sub></span> 采样。</li>
+      <li>FR-7P.3：展开结果必须是一条单步 primitive trajectory。</li>
+    </ul>
+
+    <h4>Action-chunk edge expansion</h4>
+    <ul>
+      <li>FR-7C.1：对 cognitive edge <span class="math-inline">(s,s')</span>，系统必须找到所有满足 <span class="math-inline">f(s,token)=s'</span> 的 token。</li>
+      <li>FR-7C.2：若多个 token 支持同一 edge，系统必须按条件归一化后的 <span class="math-inline">w<sub>G</sub></span> 采样。</li>
+      <li>FR-7C.3：若采样 token 是 chunk，系统必须按任务转移函数展开完整 primitive action sequence。</li>
+    </ul>
+
+    <h4>Landmark edge expansion</h4>
+    <ul>
+      <li>FR-7L.1：对 landmark cognitive edge <span class="math-inline">(s,s')</span>，系统必须在原始任务图中寻找所有 shortest primitive paths。</li>
+      <li>FR-7L.2：系统必须从这些 shortest paths 中均匀采样一条。</li>
+      <li>FR-7L.3：若不存在 primitive path，系统必须报错；CPD 不应指向环境不可达的展开目标，除非后续明确允许 partial execution。</li>
+    </ul>
+
+    <h4>通用终止规则</h4>
+    <ul>
+      <li>FR-7G.1：展开 cognitive path 时，如果实际状态序列提前到达 trial goal，系统必须立即终止 trial。</li>
+      <li>FR-7G.2：终止后不得继续展开后续 cognitive edges。</li>
+      <li>FR-7G.3：系统必须记录终止发生在哪个 cognitive edge 和哪个 primitive step。</li>
+    </ul>
+  </section>
+
+  <section id="data">
+    <h2>8. 数据需求</h2>
+    <h3>8.1 输入数据</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>对象</th>
+          <th>必需字段</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>TaskGraph</td>
+          <td>states、action vocabulary、legal actions by state、transition function、primitive costs。</td>
+        </tr>
+        <tr>
+          <td>PrimitiveRepresentation</td>
+          <td>action weights per state。</td>
+        </tr>
+        <tr>
+          <td>ChunkRepresentation</td>
+          <td>chunk inventory、token weights per state。</td>
+        </tr>
+        <tr>
+          <td>LandmarkRepresentation</td>
+          <td>landmark set、LL/LU/UL CPD blocks。</td>
+        </tr>
+        <tr>
+          <td>TrialSpec</td>
+          <td>trial id、start state、goal state、family id、optional random seed。</td>
+        </tr>
+        <tr>
+          <td>PlanningConfig</td>
+          <td>A* heuristic scale alpha、tie-breaking policy、random seed、MDS settings。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>8.2 中间数据</h3>
+    <ul>
+      <li>TransitionKernel：矩阵或稀疏行结构。</li>
+      <li>KernelSupport：每条 kernel edge 的 action/token/CPD 来源。</li>
+      <li>CognitiveGraph：edges、probabilities、costs。</li>
+      <li>DirectedDistance：directed shortest-distance matrix。</li>
+      <li>SymmetricDistance：MDS 输入矩阵。</li>
+      <li>Embedding：每个 state 的二维坐标。</li>
+      <li>AStarTrace：open/closed diagnostics、expanded nodes、path cost、final cognitive path。</li>
+      <li>ExpansionTrace：每条 cognitive edge 的 family-specific expansion 结果。</li>
+    </ul>
+
+    <h3>8.3 输出数据</h3>
+    <ul>
+      <li>Observed trajectory：状态序列和 primitive action 序列。</li>
+      <li>Cognitive path：A* 输出的状态路径。</li>
+      <li>Expanded edges：每条 cognitive edge 对应的实际 primitive path。</li>
+      <li>Model artifacts：kernel、cost graph、distances、embedding。</li>
+      <li>Run metadata：family、representation id、trial id、random seed、配置参数、状态。</li>
+    </ul>
+  </section>
+
+  <section id="validation">
+    <h2>9. 校验与异常需求</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>校验规则</th>
+          <th>失败处理</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>VAL-1</td>
+          <td>TaskGraph 的 transition source/target/action/cost 必须一致且合法。</td>
+          <td>返回 invalid task graph error。</td>
+        </tr>
+        <tr>
+          <td>VAL-2</td>
+          <td>所有 probability 或 weight 必须非负。</td>
+          <td>返回 invalid representation error。</td>
+        </tr>
+        <tr>
+          <td>VAL-3</td>
+          <td>每个 state 的 primitive weights 必须在合法 action 上归一化。</td>
+          <td>返回 invalid primitive representation error。</td>
+        </tr>
+        <tr>
+          <td>VAL-4</td>
+          <td>chunk weight row 必须在 executable token set 上归一化。</td>
+          <td>返回 invalid chunk representation error。</td>
+        </tr>
+        <tr>
+          <td>VAL-5</td>
+          <td>landmark CPD blocks 必须满足 LL+LU row sum = 1，UL row sum = 1。</td>
+          <td>返回 invalid landmark representation error。</td>
+        </tr>
+        <tr>
+          <td>VAL-6</td>
+          <td>构造出的 TransitionKernel 每行必须归一化。</td>
+          <td>返回 invalid kernel error。</td>
+        </tr>
+        <tr>
+          <td>VAL-7</td>
+          <td>MDS 前的对称距离矩阵必须有限，或系统必须进入 explicit partial/blocked 状态。</td>
+          <td>返回 embedding blocked error 或 partial result。</td>
+        </tr>
+        <tr>
+          <td>VAL-8</td>
+          <td>A* start/goal 必须属于状态集合，且 goal 在 cognitive graph 中可达。</td>
+          <td>返回 no-path result 或 planning error。</td>
+        </tr>
+        <tr>
+          <td>VAL-9</td>
+          <td>landmark edge expansion 的 source/target 必须在 primitive task graph 中可达。</td>
+          <td>返回 expansion error。</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="output">
+    <h2>10. 输出与可追溯性</h2>
+    <p>系统输出必须支持从最终轨迹反查到每个阶段的决策依据。</p>
+    <pre><code>{
+  "task_id": "...",
+  "family": "primitive | chunk | landmark",
+  "representation": {...},
+  "transition_kernel": {...},
+  "kernel_support": {...},
+  "cognitive_graph": {
+    "edges": [...],
+    "costs": [...]
+  },
+  "directed_distance": {...},
+  "symmetric_distance": {...},
+  "embedding": {...},
+  "trials": [
+    {
+      "trial_id": "...",
+      "start_state": "...",
+      "goal_state": "...",
+      "cognitive_path": [...],
+      "edge_expansions": [...],
+      "states": [...],
+      "actions": [...],
+      "status": "reached_goal | no_path | expansion_error | partial"
+    }
+  ]
+}</code></pre>
+    <ul>
+      <li>每条 cognitive edge 必须能查到 probability、cost 和 support 来源。</li>
+      <li>每次 edge expansion 必须记录采样候选、采样概率、sampled item 和展开后的 primitive path。</li>
+      <li>若提前到达 goal，必须记录提前终止位置。</li>
+      <li>若某阶段失败，必须记录失败阶段和原因。</li>
+    </ul>
+  </section>
+
+  <section id="nonfunctional">
+    <h2>11. 非功能需求</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>类别</th>
+          <th>需求</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>可复现性</td>
+          <td>所有随机采样必须由显式 seed 或 rng 控制。</td>
+        </tr>
+        <tr>
+          <td>数值稳定性</td>
+          <td>概率归一化、<code>-log(P)</code> 和 MDS 输入必须处理浮点容差。</td>
+        </tr>
+        <tr>
+          <td>可测试性</td>
+          <td>每个 pipeline stage 必须能单独测试。</td>
+        </tr>
+        <tr>
+          <td>可审计性</td>
+          <td>不得只输出最终轨迹；必须输出关键中间对象。</td>
+        </tr>
+        <tr>
+          <td>模块化</td>
+          <td>表征到 kernel 的 family-specific 逻辑必须与 shared graph/distance/A* 逻辑分离。</td>
+        </tr>
+        <tr>
+          <td>性能</td>
+          <td>当前以小规模研究任务为目标；实现应优先清晰正确，避免过早优化。</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="acceptance">
+    <h2>12. 验收标准</h2>
+    <ul>
+      <li>给定合法 primitive representation，系统能生成 row-stochastic primitive kernel。</li>
+      <li>给定合法 chunk representation，系统能过滤 executable chunks，并正确汇总同终点 token 概率。</li>
+      <li>给定合法 landmark representation，系统能从 LL/LU/UL CPD blocks 拼接 landmark kernel，且 U-U block 为 0。</li>
+      <li>系统能把任意合法 kernel 转换为 cognitive graph 和 <code>-log(P)</code> cost。</li>
+      <li>系统能计算 directed distance，并显式处理不可达状态对。</li>
+      <li>系统能对有限 symmetric distance 执行 MDS，输出二维 embedding。</li>
+      <li>系统能在 cognitive graph 上执行 A*，输出 cognitive path。</li>
+      <li>系统能按 family-specific 规则展开 cognitive edge。</li>
+      <li>系统能输出完整中间 artifacts 和最终 trajectory。</li>
+      <li>所有核心需求都有对应单元测试、集成测试或 golden case。</li>
+    </ul>
+  </section>
+
+  <section id="open">
+    <h2>13. 待决问题</h2>
+    <p>以下问题在宏观文档中尚未完全细化，进入详细设计前需要明确或以显式默认值处理：</p>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>问题</th>
+          <th>建议处理</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>OPEN-1</td>
+          <td>A* tie-breaking policy 未定义。</td>
+          <td>详细设计中固定 deterministic tie-breaker，并记录到 metadata。</td>
+        </tr>
+        <tr>
+          <td>OPEN-2</td>
+          <td>MDS 如何处理 infinite distance 未定义。</td>
+          <td>当前需求要求显式报错或 partial result；不静默填补。</td>
+        </tr>
+        <tr>
+          <td>OPEN-3</td>
+          <td>heuristic scale <span class="math-inline">alpha</span> 如何设定未定义。</td>
+          <td>作为配置参数输入，并输出到 run metadata。</td>
+        </tr>
+        <tr>
+          <td>OPEN-4</td>
+          <td>landmark CPD 是否允许 self-transition 未明确。</td>
+          <td>详细设计中需要定义；当前需求只要求若存在概率则按 CPD 处理。</td>
+        </tr>
+        <tr>
+          <td>OPEN-5</td>
+          <td>landmark edge 的 shortest primitive paths 若数量很大，是否枚举全部未定义。</td>
+          <td>当前小规模任务可枚举；后续大图可替换为等价采样算法。</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+</body>
+</html>
