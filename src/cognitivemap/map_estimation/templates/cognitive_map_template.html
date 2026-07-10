@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{title}</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        :root {{
+            --bg-color: #f8fafc;
+            --panel-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --node-stroke: #3b82f6;
+            --node-active: #ea580c;
+            --dist-near: #ea580c;
+            --dist-mid: #f97316;
+            --dist-far: #fdba74;
+        }}
+
+        * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+
+        body {{
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }}
+
+        #header {{
+            padding: 12px 24px;
+            background: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            z-index: 10;
+            flex-shrink: 0;
+        }}
+
+        .header-main {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }}
+        .controls-group {{ display: flex; align-items: center; gap: 16px; }}
+        #filters {{
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            flex-wrap: wrap;
+            max-height: 118px;
+            overflow-y: auto;
+            padding: 2px 2px 4px 2px;
+        }}
+        .filter-group {{
+            display: grid;
+            gap: 6px;
+            min-width: 116px;
+        }}
+        .filter-group-title {{
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }}
+        .filter-group-items {{
+            display: flex;
+            align-items: stretch;
+            gap: 8px;
+            flex-wrap: wrap;
+        }}
+
+        .filter-btn {{
+            min-width: 92px;
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid currentColor;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            display: grid;
+            gap: 2px;
+            transition: all 0.2s;
+            opacity: 0.5;
+            user-select: none;
+        }}
+        .filter-name {{
+            color: var(--text-main);
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.2;
+            overflow-wrap: anywhere;
+        }}
+        .filter-meta {{
+            color: var(--text-muted);
+            font-size: 11px;
+            line-height: 1.2;
+            white-space: nowrap;
+        }}
+        .filter-btn.chunk-token {{
+            background: #f8fafc;
+        }}
+        .filter-btn.active {{
+            opacity: 1;
+            border-color: currentColor;
+            box-shadow: 0 0 0 1px currentColor;
+        }}
+
+        input[type=range] {{ vertical-align: middle; }}
+
+        #main {{ display: flex; flex: 1; overflow: hidden; }}
+        #viz-container {{ flex: 1; position: relative; }}
+        svg {{ width: 100%; height: 100%; }}
+
+        #panel {{
+            width: 320px;
+            background: var(--panel-bg);
+            border-left: 1px solid var(--border-color);
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: -1px 0 3px rgba(0,0,0,0.02);
+            flex-shrink: 0;
+        }}
+
+        .panel-placeholder {{ color: var(--text-muted); text-align: center; margin-top: 50px; font-size: 14px; }}
+        .target-card {{ border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 12px; background: #fafafa; }}
+        .target-header {{ display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; font-size: 14px; }}
+        .target-dist {{ font-size: 12px; color: var(--text-muted); font-weight: normal; }}
+        .action-row {{ display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; align-items: center; }}
+        .action-bar-bg {{ flex: 1; height: 6px; background: #e2e8f0; border-radius: 3px; margin: 0 10px; overflow: hidden; }}
+        .action-bar-fill {{ height: 100%; border-radius: 3px; }}
+
+        #legend {{
+            padding: 10px 24px;
+            background: var(--panel-bg);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 24px;
+            font-size: 13px;
+            color: var(--text-muted);
+            align-items: center;
+            flex-shrink: 0;
+        }}
+        .legend-item {{ display: flex; align-items: center; gap: 8px; }}
+        .legend-line {{ width: 30px; height: 3px; border-radius: 1.5px; }}
+
+        .node circle {{
+            fill: #ffffff;
+            stroke: var(--node-stroke);
+            stroke-width: 2.5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }}
+        .node text {{
+            font-size: 12px;
+            font-weight: bold;
+            pointer-events: none;
+            fill: var(--text-main);
+        }}
+        .node.active circle {{
+            stroke: var(--node-active);
+            stroke-width: 3.5px;
+            filter: drop-shadow(0 0 6px rgba(234, 88, 12, 0.4));
+        }}
+
+        .link {{
+            fill: none;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }}
+        .link.default {{
+            stroke: #94a3b8;
+            stroke-width: 1.5px;
+            stroke-dasharray: 4,4;
+            opacity: 0.25;
+        }}
+        .link.near {{ stroke: var(--dist-near); stroke-dasharray: none; }}
+        .link.mid  {{ stroke: var(--dist-mid);  stroke-dasharray: none; }}
+        .link.far  {{ stroke: var(--dist-far);  stroke-dasharray: none; }}
+
+        .capsule rect {{ rx: 10; ry: 10; }}
+        .capsule text {{ font-size: 10px; font-weight: 600; fill: white; text-anchor: middle; dominant-baseline: central; }}
+
+        .method-badge {{
+            font-size: 12px;
+            color: var(--text-muted);
+            background: #f1f5f9;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }}
+    </style>
+</head>
+<body>
+
+<div id="header">
+    <div class="header-main">
+        <div class="controls-group">
+            <strong>{title}</strong>
+            <span class="method-badge">{method_display}</span>
+            <span style="color: var(--text-muted); font-size: 14px;">
+                Threshold: <span id="thresh-val">{threshold:.2f}</span>
+            </span>
+            <input type="range" id="threshold-slider" min="0" max="1" step="0.05" value="{threshold}">
+        </div>
+        <span class="method-badge">Control units: <span id="total-control-units"></span></span>
+    </div>
+    <div id="filters"></div>
+</div>
+
+<div id="main">
+    <div id="viz-container"><svg id="viz"></svg></div>
+    <div id="panel"><div class="panel-placeholder">Hover or Click a node to reveal transitions</div></div>
+</div>
+
+<div id="legend">
+    <div class="legend-item"><svg width="16" height="16"><circle cx="8" cy="8" r="6" fill="#fff" stroke="#3b82f6" stroke-width="2"/></svg> Node</div>
+    <div class="legend-item"><div class="legend-line" style="background: transparent; border-top: 2px dashed #94a3b8; height: 0; opacity: 0.5;"></div> All connections (bg)</div>
+    <div class="legend-item"><div class="legend-line" style="background: var(--dist-near);"></div> Near (strong)</div>
+    <div class="legend-item"><div class="legend-line" style="background: var(--dist-mid);"></div> Mid</div>
+    <div class="legend-item"><div class="legend-line" style="background: var(--dist-far); opacity: 0.6;"></div> Far (weak)</div>
+    <span style="margin-left: auto; font-size: 12px;">MDS Stress: {stress:.4f}</span>
+</div>
+
+<script>
+const DATA = {js_data_json};
+
+/** State management **/
+let state = {{
+    hoveredNode: null,
+    clickedNode: null,
+    threshold: DATA.config.threshold,
+    activeFilters: new Set(DATA.actions),
+    topK: DATA.config.top_k,
+}};
+
+const getDistance = (n1, n2) => Math.sqrt(Math.pow(n1.x - n2.x, 2) + Math.pow(n1.y - n2.y, 2));
+const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (char) => ({{
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+}}[char]));
+const formatPercent = (value) => {{
+    const percent = value * 100;
+    return `${{percent > 0 && percent < 1 ? percent.toFixed(1) : percent.toFixed(0)}}%`;
+}};
+const maxDist = (() => {{
+    let m = 0;
+    DATA.nodes.forEach(n1 => DATA.nodes.forEach(n2 => {{ m = Math.max(m, getDistance(n1, n2)); }}));
+    return m || 1;
+}})();
+const distClass = (d) => d < maxDist * 0.33 ? 'near' : d < maxDist * 0.66 ? 'mid' : 'far';
+
+const svg = d3.select("#viz");
+let width = document.getElementById('viz-container').clientWidth;
+let height = document.getElementById('viz-container').clientHeight;
+
+/** SVG markers for arrows **/
+const markerColors = {{ 'near': '#ea580c', 'mid': '#f97316', 'far': '#fdba74' }};
+svg.append("defs").selectAll("marker").data(["near", "mid", "far"])
+    .enter().append("marker")
+    .attr("id", d => `arrow-${{d}}`)
+    .attr("viewBox", "0 -5 10 10").attr("refX", 25).attr("refY", 0)
+    .attr("markerWidth", 6).attr("markerHeight", 6).attr("orient", "auto")
+    .append("path").attr("d", "M0,-5L10,0L0,5").attr("fill", d => markerColors[d]);
+
+const padding = 60;
+let xScale = d3.scaleLinear().domain([0, 1]).range([padding, width - padding]);
+let yScale = d3.scaleLinear().domain([0, 1]).range([height - padding, padding]);
+
+const gEdges = svg.append("g").attr("id", "edges");
+const gLabels = svg.append("g").attr("id", "edge-labels");
+const gNodes = svg.append("g").attr("id", "nodes");
+
+/** Node rendering **/
+const nodes = gNodes.selectAll(".node").data(DATA.nodes).enter().append("g").attr("class", "node")
+    .attr("transform", d => `translate(${{xScale(d.x)}},${{yScale(d.y)}})`)
+    .on("mouseover", (event, d) => {{
+        if (state.clickedNode && state.clickedNode !== d) return;
+        state.hoveredNode = d;
+        updateView();
+    }})
+    .on("mouseout", () => {{
+        if (state.clickedNode) return;
+        state.hoveredNode = null;
+        updateView();
+    }})
+    .on("click", (event, d) => {{
+        event.stopPropagation();
+        if (state.clickedNode === d) {{
+            state.clickedNode = null;
+            state.hoveredNode = null;
+        }} else {{
+            state.clickedNode = d;
+            state.hoveredNode = d;
+        }}
+        updateView();
+    }});
+
+svg.on("click", () => {{ state.clickedNode = null; state.hoveredNode = null; updateView(); }});
+
+nodes.append("circle").attr("r", 15);
+nodes.append("text").attr("y", 28).attr("text-anchor", "middle").text(d => d.label);
+
+/** Core view update **/
+function updateView() {{
+    const activeNode = state.clickedNode || state.hoveredNode;
+    nodes.classed("active", d => d === activeNode);
+
+    // Build valid edges from DATA.edges
+    let allValidEdges = [];
+    DATA.edges.forEach(e => {{
+        const sourceNode = DATA.nodes.find(n => n.id === e.source);
+        const targetNode = DATA.nodes.find(n => n.id === e.target);
+        if (!sourceNode || !targetNode) return;
+
+        let validActions = Object.entries(e.actions)
+            .filter(([act, prob]) => state.activeFilters.has(act))
+            .sort((a, b) => b[1] - a[1]);
+
+        if (validActions.length > 0 && validActions[0][1] >= state.threshold) {{
+            const isActive = activeNode ? (sourceNode.id === activeNode.id) : false;
+            allValidEdges.push({{
+                source: sourceNode,
+                target: targetNode,
+                dist: e.distance,
+                distRank: e.tier,
+                maxProb: validActions[0][1],
+                topActions: validActions.slice(0, state.topK),
+                actionCounts: e.action_counts || {{}},
+                transitionCount: e.transition_count || 0,
+                isActive: isActive,
+            }});
+        }}
+    }});
+
+    allValidEdges.sort((a, b) => (a.isActive === b.isActive) ? 0 : a.isActive ? 1 : -1);
+
+    // Edge lines
+    const links = gEdges.selectAll(".link").data(allValidEdges, d => `${{d.source.id}}-${{d.target.id}}`);
+    links.exit().remove();
+
+    links.enter().append("path").merge(links)
+        .attr("class", d => d.isActive ? `link ${{d.distRank}}` : "link default")
+        .attr("marker-end", d => d.isActive ? `url(#arrow-${{d.distRank}})` : null)
+        .attr("stroke-width", d => d.isActive ? 2 + d.maxProb * 4 : 1.5)
+        .attr("opacity", d => d.isActive ? (d.distRank === 'far' ? 0.4 : d.distRank === 'mid' ? 0.7 : 1) : 1)
+        .attr("d", d => `M${{xScale(d.source.x)}},${{yScale(d.source.y)}} L${{xScale(d.target.x)}},${{yScale(d.target.y)}}`);
+
+    // Action capsules
+    let activeEdgesOnly = allValidEdges.filter(e => e.isActive);
+    let labelData = [];
+    activeEdgesOnly.forEach(e => {{
+        e.topActions.forEach((act, idx) => {{
+            labelData.push({{ ...e, actionKey: act[0], prob: act[1], index: idx, total: e.topActions.length }});
+        }});
+    }});
+
+    const labels = gLabels.selectAll(".capsule-group").data(labelData, d => `${{d.source.id}}-${{d.target.id}}-${{d.actionKey}}`);
+    labels.exit().remove();
+
+    const labelsEnter = labels.enter().append("g").attr("class", "capsule-group");
+    labelsEnter.append("rect").attr("class", "capsule");
+    labelsEnter.append("text");
+
+    labels.merge(labelsEnter)
+        .attr("transform", d => {{
+            const mx = (xScale(d.source.x) + xScale(d.target.x)) / 2;
+            const my = (yScale(d.source.y) + yScale(d.target.y)) / 2;
+            const offset = (d.index - (d.total - 1) / 2) * 22;
+            return `translate(${{mx}}, ${{my + offset}})`;
+        }})
+        .each(function(d) {{
+            const g = d3.select(this);
+            const color = DATA.action_colors[d.actionKey] || '#94a3b8';
+            const textStr = `${{d.actionKey}} ${{(d.prob * 100).toFixed(0)}}%`;
+            const text = g.select("text").text(textStr);
+            const bbox = text.node().getBBox();
+
+            g.select("rect")
+                .attr("x", bbox.x - 8)
+                .attr("y", bbox.y - 4)
+                .attr("width", bbox.width + 16)
+                .attr("height", bbox.height + 8)
+                .attr("fill", color)
+                .attr("opacity", d.distRank === 'far' ? 0.7 : 1);
+        }});
+
+    updatePanel(activeNode, activeEdgesOnly);
+}}
+
+/** Side panel update **/
+function updatePanel(activeNode, edges) {{
+    const panel = document.getElementById("panel");
+    if (!activeNode) {{
+        panel.innerHTML = `<div class="panel-placeholder">Hover or Click a node to reveal transitions</div>`;
+        return;
+    }}
+
+    edges.sort((a, b) => a.dist - b.dist);
+    const sourceControlUnits = DATA.edges
+        .filter(e => e.source === activeNode.id)
+        .reduce((sum, e) => sum + (e.transition_count || 0), 0);
+
+    let html = `<h3 style="margin-top:0">Source: ${{activeNode.label}} (n=${{sourceControlUnits}})</h3>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Locked: ${{state.clickedNode ? 'Yes (click to unlock)' : 'No (hover)'}}</p>`;
+
+    if (edges.length === 0) {{
+        html += `<div class="panel-placeholder">No edges match the current threshold and filter settings.</div>`;
+    }}
+
+    edges.forEach(e => {{
+        const distColor = e.distRank === 'near' ? 'var(--dist-near)' : e.distRank === 'mid' ? 'var(--dist-mid)' : 'var(--dist-far)';
+        html += `<div class="target-card">
+            <div class="target-header">
+                <span>To: ${{e.target.label}} <span style="color: var(--text-muted); font-weight: 500;">n=${{e.transitionCount}}</span></span>
+                <span class="target-dist" style="color: ${{distColor}}; font-weight: 600;">
+                    ${{e.distRank === 'near' ? 'Near' : e.distRank === 'mid' ? 'Mid' : 'Far'}} (d=${{e.dist.toFixed(2)}})
+                </span>
+            </div>`;
+        e.topActions.forEach(act => {{
+            const color = DATA.action_colors[act[0]] || '#94a3b8';
+            const percent = (act[1] * 100).toFixed(0);
+            const count = e.actionCounts[act[0]] || 0;
+            html += `<div class="action-row">
+                <span style="color:${{color}}; font-weight:600; width:40px;">${{act[0]}}</span>
+                <div class="action-bar-bg"><div class="action-bar-fill" style="width:${{percent}}%; background-color:${{color}}"></div></div>
+                <span style="width:62px; text-align:right;">${{percent}}% · n=${{count}}</span>
+            </div>`;
+        }});
+        html += `</div>`;
+    }});
+    panel.innerHTML = html;
+}}
+
+/** Controls **/
+document.getElementById("total-control-units").innerText = DATA.config.total_control_units || 0;
+document.getElementById("threshold-slider").addEventListener("input", (e) => {{
+    state.threshold = parseFloat(e.target.value);
+    document.getElementById("thresh-val").innerText = state.threshold.toFixed(2);
+    updateView();
+}});
+
+const filterContainer = document.getElementById("filters");
+const groupedActions = new Map();
+DATA.actions.forEach(actionKey => {{
+    const stats = DATA.action_stats[actionKey] || {{ count: 0, proportion: 0, is_chunk: false, length: 1 }};
+    const length = stats.length || 1;
+    if (!groupedActions.has(length)) groupedActions.set(length, []);
+    groupedActions.get(length).push(actionKey);
+}});
+
+[...groupedActions.keys()].sort((a, b) => a - b).forEach(length => {{
+    const group = document.createElement("div");
+    group.className = "filter-group";
+    group.innerHTML = `<div class="filter-group-title">Length ${{length}}</div>`;
+
+    const items = document.createElement("div");
+    items.className = "filter-group-items";
+
+    groupedActions.get(length).forEach(actionKey => {{
+    const color = DATA.action_colors[actionKey] || '#94a3b8';
+    const stats = DATA.action_stats[actionKey] || {{ count: 0, proportion: 0, is_chunk: false, length: length }};
+    const btn = document.createElement("div");
+    btn.className = `filter-btn active ${{stats.is_chunk ? 'chunk-token' : 'primitive-token'}}`;
+    btn.style.color = color;
+    btn.title = `${{actionKey}}: n=${{stats.count}}, ${{formatPercent(stats.proportion)}} of parsed control units`;
+    btn.innerHTML = `<span class="filter-name">${{escapeHtml(actionKey)}}</span>
+        <span class="filter-meta">n=${{stats.count}} · ${{formatPercent(stats.proportion)}}</span>`;
+    btn.onclick = () => {{
+        if (state.activeFilters.has(actionKey)) {{
+            state.activeFilters.delete(actionKey);
+            btn.classList.remove("active");
+        }} else {{
+            state.activeFilters.add(actionKey);
+            btn.classList.add("active");
+        }}
+        updateView();
+    }};
+        items.appendChild(btn);
+    }});
+
+    group.appendChild(items);
+    filterContainer.appendChild(group);
+}});
+
+/** Escape key to deselect **/
+document.addEventListener("keydown", (e) => {{
+    if (e.key === "Escape") {{
+        state.clickedNode = null;
+        state.hoveredNode = null;
+        updateView();
+    }}
+}});
+
+/** Window resize **/
+window.addEventListener("resize", () => {{
+    width = document.getElementById('viz-container').clientWidth;
+    height = document.getElementById('viz-container').clientHeight;
+    xScale.range([padding, width - padding]);
+    yScale.range([height - padding, padding]);
+    nodes.attr("transform", d => `translate(${{xScale(d.x)}},${{yScale(d.y)}})`);
+    updateView();
+}});
+
+// Initial render
+updateView();
+</script>
+</body>
+</html>

@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NC Mix · 测试 v3（主观表征版）</title>
+  <script src="dist/jspsych.js"></script>
+  <script src="dist/plugin-html-keyboard-response.js"></script>
+  <script src="dist/plugin-call-function.js"></script>
+  <script src="dist/axios.min.js"></script>
+  <script src="dist/naodao-2021-12.js"></script>
+  <link rel="stylesheet" href="dist/jspsych.css" />
+  <style>
+    /* 与 navigation_jspsych / crafting_jspsych 合并，保证独立运行试次界面一致 */
+    body { font-family: "Segoe UI", "Microsoft YaHei", "SimHei", sans-serif; background: #1c1f26; color: #e8ecf6; }
+    #jspsych-content { min-height: 100vh; padding-bottom: 32px; padding-top: 46px; }
+    .nc-nav-trial { max-width: 800px; margin: 0 auto; padding: 16px 24px 28px; font-size: 16px; line-height: 1.5; }
+    .nc-nav-meta { margin-bottom: 12px; }
+    .nc-nav-line { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; margin: 10px 0; min-height: 44px; }
+    .nc-nav-line--cur .nc-nav-line-txt { color: #b4e6b4; }
+    .nc-nav-line--goal .nc-nav-line-txt { color: #ffc8a0; }
+    .nc-nav-line-txt { font-size: 18px; font-weight: 500; flex: 1; min-width: 220px; }
+    .nc-nav-line--goal { justify-content: center; align-items: center; gap: 10px 12px; }
+    .nc-nav-line--goal .nc-nav-line-txt {
+      flex: 0 1 auto; min-width: 0; display: flex; align-items: center;
+      min-height: var(--nc-goal-token-px, 65px); line-height: 1.2; box-sizing: border-box;
+    }
+    .nc-goal-legend-wrap {
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      width: var(--nc-goal-token-px, 65px); height: var(--nc-goal-token-px, 65px); line-height: 0; box-sizing: border-box;
+    }
+    .nc-goal-legend-token { display: block; width: 100%; height: 100%; filter: drop-shadow(0 2px 4px rgba(0,0,0,.35)); }
+    .nc-station-img--inline { width: 40px; height: 40px; object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 2px 4px rgba(0,0,0,.35)); }
+    .nc-nav-vis-wrap { text-align: center; margin: 18px 0 8px; }
+    .nc-nav-vis-title { font-size: 13px; color: #828a9a; margin-bottom: 10px; }
+    .nc-nav-vis-frame { display: inline-block; background: #262830; border: 2px solid #464c5a; border-radius: 12px; padding: 10px; box-sizing: border-box; }
+    .nc-vis-svg { display: block; margin: 0 auto; max-width: 100%; height: auto; touch-action: none; user-select: none; pointer-events: none; }
+    .nc-nav-legend { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; font-size: 12px; color: #b4bcc8; margin-top: 10px; }
+    .nc-nav-legend--detailed { flex-direction: column; align-items: center; gap: 6px; font-size: 11px; max-width: 320px; margin-left: auto; margin-right: auto; }
+    .nc-leg-line { display: inline-block; width: 22px; height: 4px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+    .nc-leg-line--2 { margin-left: 2px; margin-right: 4px; }
+    .nc-craft-trial { max-width: 960px; margin: 0 auto; padding: 16px 22px 28px; font-size: 15px; }
+    .nc-craft-panel { background: #282c36; border: 1px solid #484e5e; border-radius: 12px; padding: 14px 18px 18px; text-align: center; margin-bottom: 10px; }
+    .nc-craft-cap { font-size: 13px; color: #bcc6d8; margin-bottom: 10px; text-align: left; font-weight: 600; }
+    .nc-craft-gem-slot { min-height: 120px; display: flex; align-items: center; justify-content: center; padding: 8px 0; }
+    .nc-craft-gem-slot--target { min-height: 100px; }
+    .nc-craft-order-img { width: 88px; height: 88px; object-fit: contain; filter: drop-shadow(0 3px 8px rgba(0,0,0,.4)); }
+    .nc-craft-current-img { width: 112px; height: 112px; object-fit: contain; filter: drop-shadow(0 4px 12px rgba(0,0,0,.45)); }
+    .nc-craft-sub { margin-top: 8px; font-weight: 600; font-size: 16px; color: #eceff4; }
+    .nc-potions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 12px 0 14px; padding: 10px 8px; background: #22262e; border-radius: 10px; border: 1px solid #353c48; }
+    .nc-pot { text-align: center; min-width: 100px; font-size: 12px; color: #b8c0cc; background: #30343e; border: 1px solid #444c5c; border-radius: 10px; padding: 8px 10px 10px; transition: box-shadow 0.08s ease, border-color 0.08s ease; }
+    .nc-pot.nc-pot--flash-ok { box-shadow: 0 0 0 3px rgba(130, 220, 150, 0.95), 0 0 18px rgba(72, 168, 96, 0.45); border-color: rgba(130, 220, 150, 0.9); background: #2d3d34; }
+    .nc-pot.nc-pot--flash-err { box-shadow: 0 0 0 3px rgba(230, 82, 82, 0.95), 0 0 18px rgba(230, 82, 82, 0.4); border-color: rgba(230, 82, 82, 0.95); background: #3d3436; }
+    .nc-pot img { width: 52px; height: 68px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,.35)); }
+    .nc-pot-key { display: block; margin-top: 6px; font-weight: 700; color: #ecf0f6; font-size: 13px; }
+    .nc-craft-meta { text-align: center; font-size: 13px; color: #828a9a; margin-top: 6px; }
+    .nc-craft-exp-panel { font-size: 14px; color: #bcc6d8; line-height: 1.55; margin-bottom: 12px; padding: 10px 12px; background: #22262e; border-radius: 8px; border: 1px solid #353c48; text-align: left; }
+    .nc-msg { min-height: 28px; color: #f0a96e; margin-top: 12px; text-align: center; }
+    .nc-exp-panel { font-size: 14px; color: #bcc6d8; line-height: 1.55; margin-bottom: 12px; padding: 10px 12px; background: #22262e; border-radius: 8px; border: 1px solid #353c48; }
+    .nc-trial-progress { text-align: center; font-size: 14px; font-weight: 600; color: #9eb4d8; letter-spacing: 0.04em; margin: 0 0 12px; padding: 8px 12px; background: #22262e; border-radius: 8px; border: 1px solid #353c48; }
+    .nc-inst { max-width: 680px; margin: 0 auto; padding: 28px 24px 36px; color: #e8ecf6; }
+    .nc-inst h2 { font-size: 22px; font-weight: 600; color: #e6ebff; margin: 0 0 6px; letter-spacing: 0.02em; }
+    .nc-inst .nc-inst-tag { font-size: 12px; color: #7d8696; letter-spacing: 0.06em; margin-bottom: 14px; }
+    .nc-inst p { line-height: 1.72; color: #c4ccd8; margin: 0 0 12px; font-size: 15px; }
+    .nc-inst p.nc-inst-hint { font-size: 14px; color: #8f98a8; margin-top: 16px; }
+    .nc-inst strong { color: #eceff4; font-weight: 600; }
+    .nc-inst-figure { margin: 0 0 18px; text-align: center; }
+    .nc-inst-figure img {
+      display: block; margin: 0 auto; max-width: 100%; width: min(100%, 560px); height: auto;
+      max-height: min(48vh, 380px); object-fit: contain; border-radius: 12px; border: 2px solid #464c5a;
+      background: #262830; box-sizing: border-box;
+    }
+    .nc-inst-figure-cap { margin: 10px 0 0; font-size: 13px; color: #8f98a8; line-height: 1.5; }
+    .nc-mix-form label { display: block; margin: 10px 0 6px; font-size: 14px; color: #bcc6d8; }
+    .nc-mix-form input[type="text"] {
+      width: 100%; max-width: 400px; padding: 10px 12px; font-size: 16px; border-radius: 8px;
+      border: 1px solid #484e5e; background: #262830; color: #e8ecf6; box-sizing: border-box;
+    }
+    .nc-mix-order-row { margin: 16px 0; font-size: 15px; color: #c4ccd8; }
+    .nc-mix-order-row input { margin-right: 8px; }
+    .nc-mix-btn {
+      margin-top: 20px; padding: 12px 28px; font-size: 16px; cursor: pointer; border-radius: 8px;
+      border: 1px solid #5a6a8a; background: #3d4a60; color: #fff;
+    }
+    .nc-mix-banner {
+      max-width: 720px; margin: 0 auto 16px; padding: 12px 16px; background: #2a3040; border: 1px solid #4a5a78;
+      border-radius: 10px; font-size: 14px; color: #c8d4ec; text-align: center; line-height: 1.55;
+    }
+    /* 遗留后测布局样式 */
+    .nc-map-rec { max-width: 1100px; margin: 0 auto; padding: 12px 16px 36px; color: #e8ecf6; }
+    .nc-map-rec-inner { width: 100%; }
+    .nc-map-rec-title { font-size: 20px; margin: 0 0 12px; color: #e6ebff; font-weight: 600; }
+    .nc-map-rec-hint { font-size: 14px; line-height: 1.65; color: #bcc6d8; margin: 0 0 16px; }
+    .nc-map-rec-main { display: flex; gap: 14px; flex-wrap: wrap; align-items: stretch; }
+    .nc-map-rec-side { flex: 0 0 120px; min-width: 100px; }
+    .nc-map-rec-cap { font-size: 12px; color: #828a9a; margin-bottom: 8px; }
+    .nc-map-rec-palette { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-start; }
+    .nc-map-rec-palette-item { width: 52px; cursor: grab; background: #30343e; border: 1px solid #484e5e; border-radius: 8px; padding: 4px; text-align: center; }
+    .nc-map-rec-palette-item img { width: 40px; height: 40px; object-fit: contain; display: block; margin: 0 auto; pointer-events: none; }
+    .nc-map-rec-palette-label { font-size: 11px; color: #9ea8b8; display: block; margin-top: 2px; }
+    .nc-map-rec-board-wrap { flex: 1 1 320px; min-width: 280px; }
+    .nc-map-rec-board-cap { font-size: 12px; color: #828a9a; margin-bottom: 8px; }
+    .nc-map-rec-board {
+      position: relative;
+      min-height: min(52vh, 440px);
+      background: #22262e;
+      border: 2px dashed #484e5e;
+      border-radius: 12px;
+      overflow: hidden;
+      touch-action: none;
+    }
+    .nc-map-rec-svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+    .nc-map-rec-nodes { position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 2; }
+    .nc-map-rec-node {
+      position: absolute;
+      width: 52px;
+      height: 52px;
+      margin-left: -26px;
+      margin-top: -26px;
+      cursor: grab;
+      touch-action: none;
+    }
+    .nc-map-rec-node img { width: 44px; height: 44px; object-fit: contain; display: block; margin: 2px auto 0; pointer-events: none; }
+    .nc-map-rec-badge {
+      position: absolute;
+      right: -4px;
+      bottom: -4px;
+      font-size: 10px;
+      background: #3d4a60;
+      color: #fff;
+      border-radius: 8px;
+      padding: 0 4px;
+      line-height: 14px;
+    }
+    .nc-map-rec-tools { margin-top: 18px; }
+    .nc-map-rec-tools-cap { font-size: 13px; color: #bcc6d8; margin-bottom: 10px; }
+    .nc-map-rec-keys { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+    .nc-map-rec-key {
+      padding: 8px 12px;
+      font-size: 13px;
+      border-radius: 8px;
+      border: 2px solid #555;
+      background: #2a303e;
+      color: #e8ecf6;
+      cursor: pointer;
+    }
+    .nc-map-rec-key--active { box-shadow: 0 0 0 2px rgba(180,200,255,.35); background: #343b4c; }
+    .nc-map-rec-status { font-size: 13px; color: #a8b4c8; min-height: 22px; margin: 8px 0; }
+    .nc-map-rec-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .nc-map-rec-btn {
+      padding: 12px 22px;
+      font-size: 15px;
+      border-radius: 8px;
+      border: 1px solid #5a6a8a;
+      background: #3d4a60;
+      color: #fff;
+      cursor: pointer;
+    }
+    .nc-map-rec-btn--secondary { background: #2f3542; border-color: #484e5e; color: #dce2ee; }
+    .nc-map-rec-ghost {
+      position: fixed;
+      width: 48px;
+      height: 48px;
+      pointer-events: none;
+      z-index: 10000;
+      opacity: 0.88;
+    }
+    .nc-map-rec-ghost img { width: 100%; height: 100%; object-fit: contain; }
+    /* 遗留后测布局样式 v2/v3 */
+    .nc-map-rec--v2 .nc-map-rec-inner { max-width: 1180px; margin: 0 auto; }
+    .nc-map-rec--v2 .nc-map-rec-main {
+      display: grid;
+      grid-template-columns: minmax(118px, 148px) minmax(0, 1fr);
+      gap: 18px 22px;
+      align-items: start;
+    }
+    .nc-map-rec--v2 .nc-map-rec-side--v2 {
+      flex: unset;
+      min-width: 0;
+      width: 100%;
+    }
+    .nc-map-rec--v2 .nc-map-rec-palette {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 8px;
+      justify-items: stretch;
+      max-width: 100%;
+    }
+    .nc-map-rec--v2 .nc-map-rec-palette-item {
+      width: auto;
+      min-width: 0;
+      padding: 6px 4px 8px;
+    }
+    .nc-map-rec--v2 .nc-map-rec-palette-item img {
+      width: 36px;
+      height: 36px;
+    }
+    .nc-map-rec--v2 .nc-map-rec-board-wrap--v2 {
+      flex: unset;
+      min-width: 0;
+      width: 100%;
+    }
+    .nc-map-rec--v2 .nc-map-rec-board {
+      min-height: min(46vh, 400px);
+    }
+    .nc-map-rec--v2 .nc-map-rec-tools {
+      margin-top: 14px;
+      max-width: 1180px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .nc-map-rec--v2 .nc-map-rec-keys {
+      gap: 10px;
+    }
+    /* v3：正式任务只保留站点/石头图形，不显示对象名称 */
+    .nc-test-v3 .nc-craft-sub {
+      display: none !important;
+    }
+    .nc-test-v3 .nc-nav-line--goal {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      min-height: 52px;
+    }
+    .nc-test-v3 .nc-nav-line--goal .nc-nav-line-txt {
+      display: inline-flex !important;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      min-width: 0;
+      min-height: 0;
+      height: 52px;
+      font-size: 0;
+      line-height: 1;
+      color: #ffc8a0;
+    }
+    .nc-test-v3 .nc-nav-line--goal .nc-nav-line-txt::after {
+      content: "目标站点：";
+      display: block;
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1;
+    }
+    .nc-test-v3 .nc-goal-legend-wrap {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      align-self: center;
+      width: 52px;
+      height: 52px;
+      transform: none;
+    }
+    .nc-test-v3 .nc-v3-goal-img {
+      display: block;
+      width: 44px;
+      height: 44px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,.35));
+    }
+    .nc-test-v3 .nc-map-rec--v3 .nc-map-rec-actions {
+      justify-content: center;
+    }
+    .nc-test-v3 .nc-map-rec--v3 .nc-map-rec-palette-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 52px;
+    }
+    .nc-test-v3 #nc-pot-wrap-1 > div,
+    .nc-test-v3 #nc-pot-wrap-2 > div,
+    .nc-test-v3 #nc-pot-wrap-3 > div {
+      font-size: 0;
+    }
+    .nc-test-v3 #nc-pot-wrap-1 > div::after,
+    .nc-test-v3 #nc-pot-wrap-2 > div::after,
+    .nc-test-v3 #nc-pot-wrap-3 > div::after {
+      font-size: 12px;
+    }
+    .nc-test-v3 #nc-pot-wrap-1 > div::after { content: "魔法药水1"; }
+    .nc-test-v3 #nc-pot-wrap-2 > div::after { content: "魔法药水2"; }
+    .nc-test-v3 #nc-pot-wrap-3 > div::after { content: "魔法药水3"; }
+    /* 测试页：全局跳过 */
+    .nc-test-banner {
+      position: fixed; left: 0; right: 0; top: 0; z-index: 99998;
+      padding: 8px 120px 8px 14px; font-size: 13px; text-align: center;
+      background: rgba(120, 40, 40, 0.92); color: #ffe8e8; border-bottom: 1px solid #a05050;
+      pointer-events: none; line-height: 1.45;
+    }
+    .nc-test-skip-fab {
+      position: fixed; right: 12px; top: 40px; z-index: 99999;
+      padding: 10px 14px; font-size: 13px; cursor: pointer; border-radius: 10px;
+      border: 1px solid #8a6060; background: #4a3038; color: #fce8ec;
+      box-shadow: 0 2px 10px rgba(0,0,0,.35); max-width: min(200px, 42vw);
+      line-height: 1.35; font-weight: 600;
+    }
+    .nc-test-skip-fab:hover { background: #5a3842; }
+    .nc-test-skip-fab:active { transform: scale(0.98); }
+  </style>
+</head>
+<body class="nc-test-v3"></body>
+<script src="materials/nav_bundle.js"></script>
+<script>
+(function () {
+  if (window.NC_NAV_GRAPH) {
+    window.NC_MIX_NAV_EMBED = {
+      graph: window.NC_NAV_GRAPH,
+      trialSequence: { trials: [] },
+    };
+  }
+})();
+</script>
+<script src="materials/nav_embed.js"></script>
+<script src="materials/mix_embed.js"></script>
+<script src="js/asset_resolve.js"></script>
+<script src="js/config.js"></script>
+<script src="js/grid_geometry.js"></script>
+<script src="js/nav_runner.js"></script>
+<script src="js/crafting_runner.js"></script>
+<script src="js/tail_task_embed_v3.js"></script>
+<script src="js/adaptive_tail_task_embed_v3.js"></script>
+<script>
+(function () {
+  /** 指导示意图等与单机范式相同，置于本目录 materials/ 下 */
+  var MAT = "materials/";
+
+  if (!window.NC_MIX_MIX_EMBED || !window.NC_MIX_MIX_EMBED.orders) {
+    document.body.innerHTML =
+      "<div style='padding:24px;'>缺少 <code>materials/mix_embed.js</code>。在本范式所在仓库运行 <code>python scripts/export_mix_web.py</code>（需能导入 <code>NC_MIX_TASK</code> 下 crafting）生成后，将生成的文件放入本目录 <code>materials/</code>。</div>";
+    return;
+  }
+  if (!window.NC_MIX_NAV_EMBED || !window.NC_MIX_NAV_EMBED.graph) {
+    document.body.innerHTML =
+      "<div style='padding:24px;'>缺少导航图数据。请确认本目录 <code>materials/nav_bundle.js</code> 与 <code>materials/nav_embed.js</code> 存在（可与 navigation_jspsych 导出一致）。</div>";
+    return;
+  }
+  if (
+    typeof initJsPsych !== "function" ||
+    typeof jsPsychHtmlKeyboardResponse === "undefined" ||
+    typeof jsPsychCallFunction === "undefined" ||
+    typeof NCNavRunner === "undefined" ||
+    typeof NCCraftingRunner === "undefined" ||
+    typeof window.NCTailTaskEmbedV3 === "undefined" ||
+    typeof window.NCAdaptiveTailTaskV3 === "undefined"
+  ) {
+    document.body.innerHTML =
+      "<div style='padding:24px;line-height:1.6;max-width:560px;'>缺少依赖：请确认 <code>dist/</code>、<code>js/nav_runner.js</code>、<code>js/crafting_runner.js</code>、<code>js/tail_task_embed_v3.js</code>、<code>js/adaptive_tail_task_embed_v3.js</code> 与本页同级。</div>";
+    return;
+  }
+
+  var isFile = window.location.protocol === "file:";
+  var extensions =
+    !isFile && typeof Naodao !== "undefined" ? [{ type: Naodao }] : [];
+
+  var rules = window.NC_MIX_MIX_EMBED.craftingRules;
+  var graph = window.NC_MIX_NAV_EMBED.graph;
+
+  var jsPsych = initJsPsych({
+    override_safe_mode: true,
+    extensions: extensions,
+    on_trial_start: function () {
+      ncTestEnsureSkipChrome();
+    },
+    on_finish: function () {
+      ncTestTeardownSkipChrome();
+      var rows = JSON.stringify(jsPsych.data.get().values(), null, 2);
+      var blob = new Blob([rows], { type: "application/json;charset=utf-8" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "mix_nc_jspsych_test_v3_" + Date.now() + ".json";
+      a.click();
+      URL.revokeObjectURL(url);
+      var el = document.getElementById("jspsych-content");
+      if (el) {
+        el.innerHTML =
+          "<div style='padding:40px;text-align:center;font-size:20px;'>数据已尝试下载。请关闭本页。</div>";
+      }
+    },
+  });
+  window.jsPsych = jsPsych;
+
+  /** 测试页：任意试次按 Esc 或点浮动按钮立即结束当前试次（写入 test_mode_skip） */
+  window.__ncMixActiveIntroHandler = null;
+  (function patchFinishTrialForIntroCleanup() {
+    var orig = jsPsych.finishTrial.bind(jsPsych);
+    jsPsych.finishTrial = function (data) {
+      if (window.__ncMixActiveIntroHandler) {
+        try {
+          window.removeEventListener("keydown", window.__ncMixActiveIntroHandler, true);
+        } catch (e1) {}
+        window.__ncMixActiveIntroHandler = null;
+      }
+      return orig(data || {});
+    };
+  })();
+
+  var __ncTestSkipBound = false;
+  var __ncTestSkipFab = null;
+  var __ncTestBanner = null;
+  function ncTestEnsureSkipChrome() {
+    if (!__ncTestBanner) {
+      __ncTestBanner = document.createElement("div");
+      __ncTestBanner.className = "nc-test-banner";
+      __ncTestBanner.textContent =
+        "测试 index_test_v3（主观表征版）：右上角「跳过」或 Esc 结束当前试次（数据会带 test_mode_skip，勿用于正式采集）";
+      document.body.appendChild(__ncTestBanner);
+    }
+    if (!__ncTestSkipFab) {
+      __ncTestSkipFab = document.createElement("button");
+      __ncTestSkipFab.type = "button";
+      __ncTestSkipFab.className = "nc-test-skip-fab";
+      __ncTestSkipFab.textContent = "跳过当前试次 (Esc)";
+      __ncTestSkipFab.setAttribute("aria-label", "跳过当前试次");
+      __ncTestSkipFab.onclick = function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        ncTestSkipCurrentTrial("button");
+      };
+      document.body.appendChild(__ncTestSkipFab);
+    }
+    if (!__ncTestSkipBound) {
+      __ncTestSkipBound = true;
+      window.addEventListener(
+        "keydown",
+        function (ev) {
+          if (ev.key !== "Escape") return;
+          if (__ncTestSkipFab && ev.target === __ncTestSkipFab) return;
+          ncTestSkipCurrentTrial("escape");
+        },
+        false
+      );
+    }
+  }
+  function ncTestTeardownSkipChrome() {
+    if (__ncTestSkipFab && __ncTestSkipFab.parentNode) __ncTestSkipFab.parentNode.removeChild(__ncTestSkipFab);
+    if (__ncTestBanner && __ncTestBanner.parentNode) __ncTestBanner.parentNode.removeChild(__ncTestBanner);
+    __ncTestSkipFab = null;
+    __ncTestBanner = null;
+  }
+  function ncTestSkipCurrentTrial(via) {
+    var j = window.jsPsych;
+    if (!j || typeof j.finishTrial !== "function") return;
+    var cur;
+    try {
+      cur = j.getCurrentTrial();
+    } catch (e2) {
+      return;
+    }
+    if (!cur || !cur.type) return;
+    try {
+      j.finishTrial({
+        test_mode_skip: true,
+        test_skip_via: via || "unknown",
+        response: null,
+        rt: null,
+      });
+    } catch (e3) {
+      console.warn("ncTestSkipCurrentTrial:", e3);
+    }
+  }
+
+  function showPreloadOverlay(text) {
+    var host = document.getElementById("jspsych-content") || document.body;
+    if (!host) return;
+    host.innerHTML =
+      "<div id='nc-preload-mask' style='min-height:70vh;display:flex;align-items:center;justify-content:center;'>" +
+      "<div style='background:#282c36;border:1px solid #484e5e;border-radius:12px;padding:20px 24px;max-width:560px;text-align:center;'>" +
+      "<div style='font-size:18px;color:#e8ecf6;margin-bottom:8px;'>正在准备实验素材</div>" +
+      "<div id='nc-preload-text' style='font-size:14px;color:#bcc6d8;line-height:1.6;'>" +
+      (text || "请稍候...") +
+      "</div></div></div>";
+  }
+  function updatePreloadOverlay(text) {
+    var el = document.getElementById("nc-preload-text");
+    if (el) el.textContent = text;
+  }
+  function loadImage(url) {
+    return new Promise(function (resolve) {
+      var img = new Image();
+      img.onload = function () {
+        if (typeof img.decode === "function") {
+          img.decode().then(
+            function () {
+              resolve(true);
+            },
+            function () {
+              resolve(true);
+            }
+          );
+          return;
+        }
+        resolve(true);
+      };
+      img.onerror = function () {
+        resolve(false);
+      };
+      img.src = url;
+    });
+  }
+  function normalizeStoneId(sid) {
+    var m = /^stone_(\d+)$/i.exec(String(sid || ""));
+    if (!m) return String(sid || "");
+    return "stone_" + String(parseInt(m[1], 10)).padStart(2, "0");
+  }
+  function collectStoneIds(rulesObj, trialRows) {
+    var seen = {};
+    function addSid(sid) {
+      var n = normalizeStoneId(sid);
+      if (!n || seen[n]) return;
+      seen[n] = true;
+    }
+    for (var i = 1; i <= 9; i++) {
+      addSid("stone_" + String(i).padStart(2, "0"));
+    }
+    (trialRows || []).forEach(function (row) {
+      if (!row) return;
+      addSid(row.start_state);
+      var tg = row.order_targets || [];
+      tg.forEach(addSid);
+    });
+    var maps = [];
+    if (rulesObj && typeof rulesObj === "object") {
+      maps = [
+        rulesObj.potion1,
+        rulesObj.potion1_rev,
+        rulesObj.potion2,
+        rulesObj.potion2_rev,
+        rulesObj.potion3,
+      ];
+    }
+    maps.forEach(function (mp) {
+      if (!mp || typeof mp !== "object") return;
+      Object.keys(mp).forEach(function (k) {
+        addSid(k);
+        addSid(mp[k]);
+      });
+    });
+    return Object.keys(seen);
+  }
+  async function resolveFirstWorkingUrl(cands) {
+    if (!Array.isArray(cands) || !cands.length) return "";
+    for (var i = 0; i < cands.length; i++) {
+      var ok = await loadImage(cands[i]);
+      if (ok) return cands[i];
+    }
+    return "";
+  }
+  async function preloadCraftingAssets(stoneIds) {
+    var cache = { stone: {}, bottle: {}, nav: {} };
+    var hasAssets =
+      window.NCMixAssets &&
+      typeof window.NCMixAssets.stoneUrlCandidates === "function" &&
+      typeof window.NCMixAssets.bottleUrlCandidates === "function" &&
+      typeof window.NCMixAssets.navStationCandidates === "function";
+    if (!hasAssets) return cache;
+
+    stoneIds = Array.isArray(stoneIds) && stoneIds.length ? stoneIds : collectStoneIds(rules, []);
+
+    var total = stoneIds.length + 3 + 4 + 9;
+    var doneCount = 0;
+    function bump(msg) {
+      doneCount += 1;
+      updatePreloadOverlay("已完成 " + doneCount + " / " + total + " · " + msg);
+    }
+
+    await loadImage(MAT + "intro_navigation1.png");
+    bump("导航练习图");
+    await loadImage(MAT + "intro_navigation2.png");
+    bump("导航正式示意图");
+    await loadImage(MAT + "intro_crafting.png");
+    bump("合成练习图");
+    await loadImage(MAT + "intro_crafting2.png");
+    bump("合成正式示意图");
+
+    for (var si = 0; si < stoneIds.length; si++) {
+      var sid = stoneIds[si];
+      var sUrl = await resolveFirstWorkingUrl(window.NCMixAssets.stoneUrlCandidates(sid));
+      cache.stone[sid] = sUrl || "";
+      bump("石块图 " + (si + 1));
+    }
+    for (var bi = 1; bi <= 3; bi++) {
+      var bUrl = await resolveFirstWorkingUrl(window.NCMixAssets.bottleUrlCandidates(bi));
+      cache.bottle[String(bi)] = bUrl || "";
+      bump("药水 " + bi);
+    }
+    for (var ni = 1; ni <= 9; ni++) {
+      var nvUrl = await resolveFirstWorkingUrl(window.NCMixAssets.navStationCandidates(ni));
+      cache.nav[String(ni)] = nvUrl || "";
+      bump("站点图 " + ni);
+    }
+    return cache;
+  }
+
+  function sessionGuidanceStimulus(sessionNum, domainKind, trialTotal) {
+    /** 纯导航 / 纯合成：与 navigation_jspsych、crafting_jspsych 正式实验说明一致（含示意图） */
+    var navFormalFigure =
+      "<figure class='nc-inst-figure' aria-label='导航正式实验界面示意图'>" +
+      "<img src='" +
+      MAT +
+      "intro_navigation2.png' alt='导航正式实验界面：目标站点、当前站点与交通工具及对应按键' loading='eager' decoding='async' />" +
+      "</figure>";
+    var craftFormalFigure =
+      "<figure class='nc-inst-figure' aria-label='正式实验界面示意图'>" +
+      "<img src='" +
+      MAT +
+      "intro_crafting2.png' alt='九石阵正式实验界面：上方为目标石块序列，中央为当前石块，下方为三瓶药水及 Q、E、A、D、W 快捷键' loading='eager' decoding='async' />" +
+      "</figure>";
+    var countLine =
+      trialTotal != null ? "<p>本阶段共 <strong>" + trialTotal + "</strong> 个试次。</p>" : "";
+    if (domainKind === "navigation") {
+      return (
+        "<div class='nc-inst'>" +
+        "<h2>正式实验</h2>" +
+        "<div class='nc-inst-tag'>Session " +
+        sessionNum +
+        " · 导航</div>" +
+        navFormalFigure +
+        "<p>请依照<strong>您所学习的城市交通路线</strong>，通过使用不同的交通工具，<strong>从起始站点抵达提示的目标站点</strong>。</p>" +
+        "<p>键位与练习一致。</p>" +
+        "<p>完成当前试次后根据屏幕提示继续下一试次。</p>" +
+        countLine +
+        "<p class='nc-inst-hint'>按 <strong>空格</strong> 开始正式实验。</p></div>"
+      );
+    }
+    if (domainKind === "crafting") {
+      return (
+        "<div class='nc-inst'>" +
+        "<h2>正式实验</h2>" +
+        "<div class='nc-inst-tag'>Session " +
+        sessionNum +
+        " · 合成</div>" +
+        craftFormalFigure +
+        "<p>请依照<strong>您所学习的转化规律</strong>，通过使用不同的魔法药水，<strong>将起始石块转变为提示的目标石块</strong>。</p>" +
+        "<p>键位与练习一致。</p>" +
+        "<p>完成当前试次后根据屏幕提示继续下一试次。</p>" +
+        countLine +
+        "<p class='nc-inst-hint'>按 <strong>空格</strong> 开始正式实验。</p></div>"
+      );
+    }
+    var mixedParas = [
+      "本阶段将交替出现「导航」与「合成」两类试次；",
+      "请始终以当前屏幕界面为准，正常完成实验即可；",
+      "两类任务操作不同，切换时请先看清界面再操作。",
+    ];
+    var mixedBody = mixedParas
+      .map(function (p) {
+        return "<p>" + p + "</p>";
+      })
+      .join("");
+    return (
+      "<div class='nc-inst'>" +
+      "<h2>Session " +
+      sessionNum +
+      " · 混合任务</h2>" +
+      "<div class='nc-inst-tag'>任务概要</div>" +
+      mixedBody +
+      countLine +
+      "<p class='nc-inst-hint'>按 <strong>空格</strong> 开始本阶段。</p></div>"
+    );
+  }
+
+  function mkNavTrial(graphObj, row, phase, trialIndex, trialProgress, staticData) {
+    return {
+      type: jsPsychCallFunction,
+      async: true,
+      data: Object.assign({ screen_id: "mix_navigation_trial", phase: phase }, staticData || {}),
+      func: function (done) {
+        var display = jsPsych.getDisplayElement();
+        var goalCode = parseInt(row && row.targetB, 10);
+        NCNavRunner.runNavTrial(
+          display,
+          graphObj,
+          row,
+          phase,
+          trialIndex,
+          function (payload) {
+            done(payload);
+          },
+          trialProgress || null
+        );
+        var goalWrap = document.getElementById("nc-goal-legend-wrap");
+        if (goalWrap && goalCode >= 1 && goalCode <= 9) {
+          goalWrap.innerHTML =
+            '<img class="nc-v3-goal-img" alt="" src="' +
+            MAT +
+            "img/nav/station_" +
+            String(goalCode).padStart(2, "0") +
+            '.svg" />';
+        }
+      },
+    };
+  }
+
+  function mkCraftTrial(row, phase, trialIndex, trialProgress, staticData) {
+    return {
+      type: jsPsychCallFunction,
+      async: true,
+      data: Object.assign({ screen_id: "mix_crafting_trial", phase: phase }, staticData || {}),
+      func: function (done) {
+        var display = jsPsych.getDisplayElement();
+        NCCraftingRunner.runCraftingTrial(
+          display,
+          rules,
+          row,
+          phase,
+          trialIndex,
+          function (payload) {
+            done(payload);
+          },
+          trialProgress || null
+        );
+      },
+    };
+  }
+
+  function collectAllCraftRowsForOrder(orderPack) {
+    var rows = [];
+    (orderPack.sessions || []).forEach(function (sess) {
+      (sess.steps || []).forEach(function (st) {
+        if (st.type === "crafting" && st.row) rows.push(st.row);
+      });
+    });
+    return rows;
+  }
+
+  /** 与 crafting_runner 一致：石块 id → 1–9，供 staticData 与导航站点编码对齐 */
+  function ncStoneToCode(sid) {
+    var m = /^stone_(\d+)$/i.exec(String(sid || ""));
+    if (!m) return 0;
+    return parseInt(m[1], 10);
+  }
+
+  function ncOrderTargetsToCodes(arr) {
+    if (!Array.isArray(arr)) return [];
+    var out = [];
+    for (var i = 0; i < arr.length; i++) {
+      var c = ncStoneToCode(arr[i]);
+      if (c >= 1 && c <= 9) out.push(c);
+    }
+    return out;
+  }
+
+  /** 与正式试次 done() 顶层键对齐：练习前 Esc、未进入探索即结束 */
+  function ncExplorationIntroSkipPayload(domain) {
+    var cfg = window.NC_MIX_CONFIG || {};
+    return {
+      phase: "exploration",
+      domain: domain,
+      completed: false,
+      exploration_skipped: true,
+      skip_reason: "esc_before_start",
+      visit_counts: {},
+      steps: [],
+      min_seconds: cfg.explorationMinSeconds != null ? cfg.explorationMinSeconds : 180,
+      min_visits_per_node:
+        cfg.explorationMinVisitsPerNode != null ? cfg.explorationMinVisitsPerNode : 2,
+      trial_index: null,
+      trial_progress: null,
+      trial_id: "exploration",
+      start_code: 1,
+      goal_code: null,
+      goal_codes: [],
+      total_steps: 0,
+      outcome: "skipped",
+      total_time_ms: 0,
+    };
+  }
+
+  function appendNavExplorationPractice(timeline) {
+    timeline.push({
+      type: jsPsychCallFunction,
+      async: true,
+      func: function (done) {
+        var el = jsPsych.getDisplayElement();
+        el.innerHTML =
+          "<div class='nc-inst'>" +
+          "<h2>练习阶段 · 导航</h2>" +
+          "<div class='nc-inst-tag'>自由探索</div>" +
+          "<figure class='nc-inst-figure' aria-label='导航练习界面示意图'>" +
+          "<img src='" +
+          MAT +
+          "intro_navigation1.png' alt='导航练习界面示意图' loading='eager' decoding='async' />" +
+          "</figure>" +
+          "<p>本阶段用于熟悉界面与<strong>不同站点之间的关系</strong>。</p>" +
+          "<p>请在 <strong>3 分钟</strong> 内自由按键；要求使 <strong>每一站点至少抵达 2 次</strong>；</p>" +
+          "<p><strong>探索时长与探索目标</strong>均达标后自动结束。</p>" +
+          "<p><strong>操作：</strong>公交 Q / E，地铁 A / D，快速巴士 W。</p>" +
+          "<p class='nc-inst-hint'>按 <strong>空格</strong> 开始探索；按 <strong>Esc</strong> 可跳过本段。</p></div>";
+        function introKeys(e) {
+          if (e.key === "Escape") {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            window.removeEventListener("keydown", introKeys, true);
+            window.__ncMixActiveIntroHandler = null;
+            done(ncExplorationIntroSkipPayload("navigation"));
+            return;
+          }
+          if (e.code === "Space" || e.key === " ") {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            window.removeEventListener("keydown", introKeys, true);
+            window.__ncMixActiveIntroHandler = null;
+            NCNavRunner.runNavExploration(el, graph, function (payload) {
+              done(payload);
+            });
+          }
+        }
+        window.addEventListener("keydown", introKeys, true);
+        window.__ncMixActiveIntroHandler = introKeys;
+      },
+      data: { screen_id: "mix_nav_practice_block" },
+    });
+  }
+
+  function appendCraftExplorationPractice(timeline) {
+    timeline.push({
+      type: jsPsychCallFunction,
+      async: true,
+      func: function (done) {
+        var el = jsPsych.getDisplayElement();
+        el.innerHTML =
+          "<div class='nc-inst'>" +
+          "<h2>练习阶段</h2>" +
+          "<div class='nc-inst-tag'>自由探索</div>" +
+          "<figure class='nc-inst-figure' aria-label='练习界面示意图'>" +
+          "<img src='" +
+          MAT +
+          "intro_crafting.png' alt='九石阵练习界面：中央为当前石块，下方为三瓶药水及 Q、E、A、D、W 快捷键' loading='eager' decoding='async' />" +
+          "</figure>" +
+          "<p>本阶段用于熟悉<strong>药水—石块</strong>关系（不计入正式成绩）。</p>" +
+          "<p>请在 <strong>3 分钟</strong> 内自由按键；要求使 <strong>各石头状态至少被生成 2 次</strong>；</p>" +
+          "<p><strong>探索时长与探索目标</strong>均达标后自动结束。</p>" +
+          "<p>操作：<strong>魔法药水1 Q / E、魔法药水2 A / D、魔法药水3 W</strong>；<strong>R</strong> 重置为起始石块。</p>" +
+          "<p class='nc-inst-hint'>点击按钮开始；按 <strong>Esc</strong> 可跳过本段。</p>" +
+          "<p style='margin-top:22px;'><button type='button' id='nc-mix-craft-exp-start' class='nc-mix-btn'>开始探索</button></p></div>";
+        function escIntro(e) {
+          if (e.key !== "Escape") return;
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          window.removeEventListener("keydown", escIntro, true);
+          window.__ncMixActiveIntroHandler = null;
+          var b = document.getElementById("nc-mix-craft-exp-start");
+          if (b) b.onclick = null;
+          done(ncExplorationIntroSkipPayload("crafting"));
+        }
+        window.addEventListener("keydown", escIntro, true);
+        window.__ncMixActiveIntroHandler = escIntro;
+        document.getElementById("nc-mix-craft-exp-start").onclick = function () {
+          window.removeEventListener("keydown", escIntro, true);
+          window.__ncMixActiveIntroHandler = null;
+          NCCraftingRunner.runCraftExploration(el, rules, function (payload) {
+            done(payload);
+          });
+        };
+      },
+      data: { screen_id: "mix_craft_practice_block" },
+    });
+  }
+
+  function appendSessionBlock(timeline, sess, orderKey) {
+    var sn = sess.session;
+    var domain = sess.domain;
+    var steps = sess.steps || [];
+    var guidanceKind =
+      domain === "navigation" ? "navigation" : domain === "crafting" ? "crafting" : "mixed";
+    var trialTotal = steps.length;
+
+    timeline.push({
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: sessionGuidanceStimulus(sn, guidanceKind, trialTotal),
+      choices: [" "],
+      data: { screen_id: "mix_session_guidance", mix_session: sn, mix_domain: domain, experiment_order: orderKey },
+    });
+
+    steps.forEach(function (step) {
+      var prog = {
+        current: step.session_step_index,
+        total: step.session_step_total,
+      };
+      var row = step.row || {};
+      var staticData = {
+        mix_session: sn,
+        mix_session_domain: domain,
+        mix_step_index: step.session_step_index,
+        mix_step_total: step.session_step_total,
+        experiment_order: orderKey,
+        /** 与 mix_embed / 桌面调度一致：loop | grid | tie，便于按任务类型分析 */
+        pair_id: row.pair_id != null ? String(row.pair_id) : "",
+        category: row.category != null ? String(row.category) : "",
+      };
+      if (step.type === "crafting") {
+        if (row.recipe != null) staticData.recipe = String(row.recipe);
+        if (row.task_id != null) staticData.task_id = String(row.task_id);
+        else if (row.trial_id != null) staticData.task_id = String(row.trial_id);
+      }
+      if (step.type === "navigation") {
+        staticData.trial_id =
+          row.trial_id != null && String(row.trial_id).length
+            ? String(row.trial_id)
+            : "nav_" + String(row.trial_index != null ? row.trial_index : step.session_step_index);
+        staticData.start_code = parseInt(row.targetA, 10);
+        staticData.goal_code = parseInt(row.targetB, 10);
+        staticData.goal_codes = [staticData.goal_code];
+        timeline.push(
+          mkNavTrial(
+            graph,
+            step.row,
+            "main",
+            step.row.trial_index || step.session_step_index,
+            prog,
+            staticData
+          )
+        );
+      } else {
+        var gcs = ncOrderTargetsToCodes(row.order_targets);
+        staticData.trial_id =
+          staticData.task_id && String(staticData.task_id).length
+            ? String(staticData.task_id)
+            : row.trial_id != null && String(row.trial_id).length
+              ? String(row.trial_id)
+              : "";
+        staticData.start_code = ncStoneToCode(row.start_state);
+        staticData.goal_code = gcs.length ? gcs[gcs.length - 1] : 0;
+        staticData.goal_codes = gcs;
+        timeline.push(
+          mkCraftTrial(
+            step.row,
+            "main",
+            step.row.trial_index || step.session_step_index,
+            prog,
+            staticData
+          )
+        );
+      }
+    });
+  }
+
+  function appendTransitionRestPhase(timeline, context, nextStageLabel, orderKey) {
+    timeline.push({
+      type: jsPsychCallFunction,
+      async: true,
+      data: {
+        screen_id: "transition_rest_" + context,
+        phase: "transition_rest",
+        rest_context: context,
+        experiment_order: orderKey,
+      },
+      func: function (done) {
+        var root = jsPsych.getDisplayElement();
+        var minMs = 5000;
+        var t0 = performance.now();
+        var finished = false;
+        function render() {
+          if (finished) return;
+          var elapsed = performance.now() - t0;
+          var remaining = Math.max(0, minMs - elapsed);
+          var hint =
+            remaining > 0
+              ? Math.ceil(remaining / 1000) + " 秒后可继续。"
+              : "准备好后，请按空格继续。";
+          root.innerHTML =
+            "<div class='nc-inst' style='max-width:620px;text-align:left;'>" +
+            "<h2>请稍作休息</h2>" +
+            "<p>本阶段已完成。请稍作休息，准备进入" +
+            nextStageLabel +
+            "。</p>" +
+            "<p class='nc-inst-hint'>" +
+            hint +
+            "</p></div>";
+          window.requestAnimationFrame(render);
+        }
+        function finish(interrupted) {
+          if (finished) return;
+          finished = true;
+          window.removeEventListener("keydown", onKey, true);
+          done({
+            phase: "transition_rest",
+            rest_context: context,
+            rest_min_duration_ms: minMs,
+            rest_actual_duration_ms: Math.round(performance.now() - t0),
+            next_stage_label: nextStageLabel,
+            interrupted: !!interrupted,
+          });
+        }
+        function onKey(ev) {
+          if ((ev.key === " " || ev.code === "Space" || ev.key === "Enter") && performance.now() - t0 >= minMs) {
+            ev.preventDefault();
+            finish(false);
+          }
+        }
+        window.addEventListener("keydown", onKey, true);
+        render();
+      },
+    });
+  }
+
+  function collectParticipantAndOrder() {
+    return new Promise(function (resolve, reject) {
+      var host = document.getElementById("jspsych-content") || document.body;
+      host.innerHTML =
+        "<div class='nc-inst nc-mix-form'>" +
+        "<h2>NC 混合实验</h2>" +
+        "<p>请输入被试编号，并选择实验顺序。</p>" +
+        "<label for='nc-mix-pid'>被试编号</label>" +
+        "<input type='text' id='nc-mix-pid' maxlength='48' autocomplete='off' />" +
+        "<div class='nc-mix-order-row'><strong>顺序</strong></div>" +
+        "<div class='nc-mix-order-row'><label><input type='radio' name='nc-mix-order' value='navigation-first' checked /> navigation-first（先导航后合成）</label></div>" +
+        "<div class='nc-mix-order-row'><label><input type='radio' name='nc-mix-order' value='crafting-first' /> crafting-first（先合成后导航）</label></div>" +
+        "<button type='button' class='nc-mix-btn' id='nc-mix-start'>继续</button>" + "</div>";
+      document.getElementById("nc-mix-start").onclick = function () {
+        var pid = (document.getElementById("nc-mix-pid").value || "").trim() || "anon";
+        var ord =
+          (document.querySelector("input[name='nc-mix-order']:checked") || {}).value ||
+          "navigation-first";
+        jsPsych.data.addProperties({
+          participant_id: pid,
+          experiment_order: ord,
+        });
+        resolve({ participant_id: pid, experiment_order: ord });
+      };
+    });
+  }
+
+  async function run() {
+    showPreloadOverlay("正在加载示意图与素材…");
+    await loadImage(MAT + "intro_navigation1.png");
+    await loadImage(MAT + "intro_navigation2.png");
+    await loadImage(MAT + "intro_crafting.png");
+    await loadImage(MAT + "intro_crafting2.png");
+
+    updatePreloadOverlay("请填写被试信息…");
+    var reg = await collectParticipantAndOrder();
+    var orderKey = reg.experiment_order;
+    var pack = window.NC_MIX_MIX_EMBED.orders[orderKey];
+    if (!pack || !pack.sessions) {
+      document.getElementById("jspsych-content").innerHTML =
+        "<div style='padding:24px;'>所选顺序无数据: " + orderKey + "</div>";
+      return;
+    }
+
+    var craftRows = collectAllCraftRowsForOrder(pack);
+    var allStoneIds = collectStoneIds(rules, craftRows);
+    updatePreloadOverlay("正在解析并缓存石块图与药水图片...");
+    var cache = await preloadCraftingAssets(allStoneIds);
+    window.NC_MIX_ASSET_PREFETCH = cache;
+
+    var timeline = [];
+
+    timeline.push({
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus:
+        "<div class='nc-inst'>" +
+        "<h2>正式测试（3 个 Session）</h2>" +
+        "<p>本版本共 <strong>3</strong> 个正式 Session：<strong>前两个</strong>为纯导航或纯合成块（取决于您选择的顺序）。</p>" +
+        "<p><strong>每个单任务 Session 的正式试次前</strong>，会先进行与<strong>该任务</strong>对应的自由探索练习；<strong>Session 3 为混合试次</strong>（导航与合成交替，不再单独加练习块）。</p>" +
+        "<p>完成<strong>纯导航</strong>或<strong>纯合成</strong> Session 后，将各进行一段<strong>固定 B/D/E 答题</strong>，随后有短暂休息；<strong>Session 3 结束后</strong>将根据正式任务表现生成一段<strong>adaptive B/D/E 答题</strong>。</p>" +
+        "<p>各 Session 开始前有简要说明；试次进度在界面顶部显示。</p>" +
+        "<p class='nc-inst-hint'>按 <strong>空格</strong> 开始（接下来将进入 Session 1 前的相关阶段）。</p>" +
+        "<p style='font-size:13px;color:#c9a0a0;margin-top:14px'>本页为 <strong>index_test_v3</strong>：固定 B/D/E 与 adaptive B/D/E 均为主观表征版、无自信评分；全程可用右上角「跳过」或 <strong>Esc</strong>（数据含 test_mode_skip、tail_present_version v3、adaptive_tail_task_version v3）。</p></div>",
+      choices: [" "],
+      data: { screen_id: "mix_pre_main_intro" },
+    });
+
+    var sessions = pack.sessions || [];
+    var finalSessionNumber = sessions.reduce(function (m, sess) {
+      return Math.max(m, Number(sess.session || 0));
+    }, 0);
+
+    sessions.forEach(function (sess) {
+      if (sess.domain === "navigation") {
+        appendNavExplorationPractice(timeline);
+      } else if (sess.domain === "crafting") {
+        appendCraftExplorationPractice(timeline);
+      }
+      appendSessionBlock(timeline, sess, orderKey);
+      if (sess.domain === "navigation") {
+        window.NCTailTaskEmbedV3.appendTailPhaseToTimeline(timeline, "navigation", reg.participant_id, orderKey);
+        if (Number(sess.session || 0) < finalSessionNumber) {
+          appendTransitionRestPhase(timeline, "after_tail_session_" + sess.session, "Session " + (Number(sess.session) + 1), orderKey);
+        }
+      } else if (sess.domain === "crafting") {
+        window.NCTailTaskEmbedV3.appendTailPhaseToTimeline(timeline, "crafting", reg.participant_id, orderKey);
+        if (Number(sess.session || 0) < finalSessionNumber) {
+          appendTransitionRestPhase(timeline, "after_tail_session_" + sess.session, "Session " + (Number(sess.session) + 1), orderKey);
+        }
+      }
+    });
+
+    window.NCAdaptiveTailTaskV3.appendAdaptiveTailPhaseToTimeline(timeline, reg.participant_id, orderKey);
+
+    timeline.push({
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus:
+        "<div class='nc-inst' style='text-align:center;max-width:560px;'>" +
+        "<h2>实验结束</h2>" +
+        "<p>全部 Session、固定 B/D/E 与 <strong>adaptive B/D/E</strong> 已完成。浏览器将尝试下载数据文件。</p>" +
+        "<p class='nc-inst-hint'>按 <strong>空格</strong> 结束并触发下载。</p></div>",
+      choices: [" "],
+      data: { screen_id: "mix_finish" },
+    });
+
+    jsPsych.run(timeline);
+  }
+
+  run();
+})();
+</script>
+</html>

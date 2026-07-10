@@ -1,0 +1,50 @@
+{
+  "participant_id": "005",
+  "main_trials": {
+    "n_trials": 60,
+    "mean_path_efficiency": 0.5097339167353637,
+    "mean_excess_steps": 8.5,
+    "success_rate": 1.0,
+    "by_session_domain": [
+      {
+        "mix_session": 1,
+        "domain": "navigation",
+        "n": 20,
+        "path_eff": 0.5027970558852911,
+        "rt": 27416.15
+      },
+      {
+        "mix_session": 2,
+        "domain": "crafting",
+        "n": 20,
+        "path_eff": 0.5003008404638839,
+        "rt": 20298.85
+      },
+      {
+        "mix_session": 3,
+        "domain": "crafting",
+        "n": 10,
+        "path_eff": 0.3757371194785383,
+        "rt": 22964.0
+      },
+      {
+        "mix_session": 3,
+        "domain": "navigation",
+        "n": 10,
+        "path_eff": 0.6764705882352942,
+        "rt": 14016.0
+      }
+    ]
+  },
+  "tail_B": {
+    "spearman_graph_vs_rating": -0.22493834486815734,
+    "mean_rating": 4.277777777777778
+  },
+  "tail_E": {
+    "hub_on_shortest_path_rate": 0.71875
+  },
+  "map_reconstruction_stress": {
+    "crafting": 0.5701046748469081,
+    "navigation": 0.49554211309103535
+  }
+}
