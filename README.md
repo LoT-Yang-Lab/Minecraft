@@ -1,6 +1,6 @@
-# CognitiveMap
+# Minecraft
 
-CognitiveMap 是一个用于研究导航任务中人类表征方式的科研代码库。当前仓库按三层能力组织：
+Minecraft 是一个用于研究导航任务中人类表征方式的科研代码库。当前仓库按三层能力组织：
 
 - `map_estimation`：从多 trial 行为序列估计认知地图。
 - `inference`：从观测行为中推断 action chunk 与 landmark candidate。
