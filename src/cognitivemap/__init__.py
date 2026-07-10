@@ -1,4 +1,4 @@
-"""CognitiveMap 包根模块。
+"""Minecraft 项目的 cognitivemap 包根模块。
 
 当前仓库只要求保证子包可独立导入。根包不再强行聚合历史上不存在的模块。
 """
