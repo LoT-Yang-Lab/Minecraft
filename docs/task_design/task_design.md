@@ -453,5 +453,6 @@ adaptive B/D/E 生成方向 = BDeu chunk mining + bootstrap landmark mining
 分析入口 = src + script/real_data_pipeline + script/simulation_recovery_pipeline
 可视化入口 = script/visualization
 图表输出 = result/figure
+任务素材归档 = assets
 旧 experiments/新数据 = 可删除候选，不再作为正式依赖
 ```

@@ -10,6 +10,7 @@
 | `data/real_data_pipeline/raw/` | `script/real_data_pipeline/preprocess_human_data.py` 的默认原始数据目录 | 若使用默认命令，需要把原始 JSON 放到这里，或显式传 `--input-dir data/raw_data` |
 | `data/real_data_pipeline/processed/` | 预处理后每被试每 domain 的 step-level joblib | 由 `preprocess_human_data.py` 生成 |
 | `data/real_data_pipeline/inference_results/` | chunk / landmark 推断结果 | 由 `infer_chunk_human.py`、`infer_landmark_human.py` 生成 |
+| `assets/` | 任务素材归档 | 只保存图片素材，不作为代码模块使用 |
 | `script/visualization/` | 正式维护的可视化脚本入口 | 当前包含 `visualize_mix_jspsych_data.py` |
 | `result/figure/` | 正式图表输出根目录 | 当前 `result/figure/mix_jspsych/` 已生成旧版数据图 |
 | `experiments/新数据/` | 历史探索性分析和可视化原型 | 可退出正式依赖；删除前确认是否需要归档旧图和旧说明 |
